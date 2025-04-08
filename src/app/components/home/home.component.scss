@@ -1,0 +1,96 @@
+.home-container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.background-image {
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/assets/images/invoice-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+}
+
+.content {
+  max-width: 90%;
+  width: 600px;
+  padding: 30px;
+  
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.create-button {
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  border-radius: 30px;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .content {
+    padding: 20px;
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+    
+    p {
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+  }
+  
+  .create-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 15px;
+    
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+  }
+  
+  .create-button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+} 

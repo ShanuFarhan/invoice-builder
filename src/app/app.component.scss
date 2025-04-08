@@ -1,0 +1,43 @@
+.app-toolbar {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.app-content {
+  min-height: calc(100vh - 64px);
+  height: auto;
+  background-color: #f8f9fa;
+  overflow: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .app-toolbar {
+    height: 56px;
+    padding: 0 10px;
+  }
+  
+  .app-title {
+    font-size: 1.2rem;
+  }
+  
+  .app-content {
+    min-height: calc(100vh - 56px);
+  }
+}

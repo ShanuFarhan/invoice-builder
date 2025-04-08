@@ -1,0 +1,143 @@
+<div class="form-container">
+    <h1>Invoice Form</h1>
+    <p class="subtitle">Fill out the information for your invoice</p>
+
+    <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()">
+        <div class="form-section">
+            <h2>Your Information</h2>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Business Name</mat-label>
+                    <input matInput formControlName="business" placeholder="Enter your business name">
+                    <mat-error *ngIf="invoiceForm.get('business')?.hasError('required')">
+                        Business name is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Full Name</mat-label>
+                    <input matInput formControlName="name" placeholder="Enter your full name">
+                    <mat-error *ngIf="invoiceForm.get('name')?.hasError('required')">
+                        Full name is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Email</mat-label>
+                    <input matInput type="email" formControlName="email" placeholder="Enter your email">
+                    <mat-error *ngIf="invoiceForm.get('email')?.hasError('required')">
+                        Email is required
+                    </mat-error>
+                    <mat-error *ngIf="invoiceForm.get('email')?.hasError('email')">
+                        Please enter a valid email address
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Phone</mat-label>
+                    <input matInput formControlName="phone" placeholder="Enter your phone number">
+                    <mat-error *ngIf="invoiceForm.get('phone')?.hasError('required')">
+                        Phone number is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Address</mat-label>
+                    <textarea matInput formControlName="address" placeholder="Enter your address" rows="3"></textarea>
+                    <mat-error *ngIf="invoiceForm.get('address')?.hasError('required')">
+                        Address is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Property Information</h2>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>Property Name</mat-label>
+                    <input matInput formControlName="propertyName" placeholder="Enter property name">
+                    <mat-error *ngIf="invoiceForm.get('propertyName')?.hasError('required')">
+                        Property name is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Invoice Items</h2>
+
+            <div formArrayName="items">
+                <div *ngFor="let item of getItems().controls; let i = index" [formGroupName]="i" class="item-row">
+                    <div class="item-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description</mat-label>
+                            <input matInput formControlName="description" placeholder="Item description">
+                            <mat-error *ngIf="item.get('description')?.hasError('required')">
+                                Description is required
+                            </mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Quantity</mat-label>
+                            <input matInput type="number" formControlName="quantity" min="1" (input)="updateAmount(i)">
+                            <mat-error *ngIf="item.get('quantity')?.hasError('required')">
+                                Quantity is required
+                            </mat-error>
+                            <mat-error *ngIf="item.get('quantity')?.hasError('min')">
+                                Quantity must be at least 1
+                            </mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Rate</mat-label>
+                            <input matInput type="number" formControlName="rate" min="0" (input)="updateAmount(i)">
+                            <mat-error *ngIf="item.get('rate')?.hasError('required')">
+                                Rate is required
+                            </mat-error>
+                            <mat-error *ngIf="item.get('rate')?.hasError('min')">
+                                Rate must be at least 0
+                            </mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Amount</mat-label>
+                            <input matInput formControlName="amount" readonly>
+                        </mat-form-field>
+                    </div>
+
+                    <button mat-icon-button color="warn" type="button" (click)="removeItem(i)"
+                        *ngIf="getItems().length > 1">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <div class="add-item-container">
+                <button mat-raised-button color="primary" type="button" (click)="addItem()">
+                    <mat-icon>add</mat-icon> Add Item
+                </button>
+            </div>
+
+            <div class="total-row">
+                <span class="total-label">Total:</span>
+                <span class="total-amount">{{ calculateTotal() | currency }}</span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button mat-raised-button color="accent" type="button" routerLink="/templates">Back</button>
+            <button mat-raised-button color="primary" type="submit">Create Invoice</button>
+        </div>
+    </form>
+</div>

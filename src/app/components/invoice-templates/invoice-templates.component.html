@@ -1,0 +1,37 @@
+<div class="templates-container">
+    <div class="header">
+        <h1>Select an Invoice Template</h1>
+        <p>Choose a template to customize your invoice</p>
+    </div>
+
+    <div class="templates-grid">
+        <mat-card class="template-card" *ngFor="let template of templates" (click)="selectTemplate(template)">
+            <mat-card-header [style.background-color]="template.color">
+                <mat-card-title>{{ template.name }}</mat-card-title>
+                <mat-card-subtitle>{{ template.layout | titlecase }} Layout</mat-card-subtitle>
+            </mat-card-header>
+
+            <!-- <img mat-card-image [src]="template.image" alt="{{ template.name }} template"> -->
+
+            <mat-card-content>
+                <p class="template-description">{{ template.description }}</p>
+                <div class="features-list">
+                    <h4>Features:</h4>
+                    <ul>
+                        <li *ngFor="let feature of template.features">
+                            <mat-icon class="feature-icon">check_circle</mat-icon>
+                            {{ feature }}
+                        </li>
+                    </ul>
+                </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+                <button mat-raised-button [color]="'primary'" class="select-button">
+                    <mat-icon>edit</mat-icon>
+                    CUSTOMIZE TEMPLATE
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+</div>
