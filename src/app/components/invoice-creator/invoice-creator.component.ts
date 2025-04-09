@@ -4,6 +4,7 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as html2canvas from 'html2canvas';
 import * as jsPDF from 'jspdf';
+import { Invoice, InvoiceService } from '../../services/invoice.service';
 
 interface TemplateContent {
     [key: string]: string;
@@ -45,6 +46,7 @@ export class InvoiceCreatorComponent implements OnInit {
     today: Date = new Date();
     Math: any = Math; // Add Math as a class property
     invoiceNumber: string; // Store invoice number as a property
+    currentInvoice: Invoice | null = null;
 
     // Template customization properties
     isEditMode: boolean = false;
@@ -61,7 +63,8 @@ export class InvoiceCreatorComponent implements OnInit {
         private router: Router,
         private fb: FormBuilder,
         private sanitizer: DomSanitizer,
-        private elementRef: ElementRef
+        private elementRef: ElementRef,
+        private invoiceService: InvoiceService
     ) {
         this.invoiceForm = this.fb.group({
             name: ['', Validators.required],
@@ -80,8 +83,9 @@ export class InvoiceCreatorComponent implements OnInit {
             ])
         });
 
-        // Generate invoice number once during initialization
-        this.invoiceNumber = this.generateInvoiceNumber();
+        // Get the current invoice from the service or generate a number
+        this.currentInvoice = this.invoiceService.getCurrentInvoice();
+        this.invoiceNumber = this.currentInvoice?.invoiceNumber || this.generateInvoiceNumber();
     }
 
     ngOnInit(): void {
@@ -93,12 +97,49 @@ export class InvoiceCreatorComponent implements OnInit {
                 this.headerColor = params['color'];
             }
             if (params['layout']) {
-                this.layout = params['layout']; // Add this property to the class
+                this.layout = params['layout'];
             }
 
             this.loadTemplateLayout(); // New method to load layout-specific content
             this.loadSavedTemplate();
         });
+
+        // Load invoice data if available
+        this.loadInvoiceData();
+    }
+
+    loadInvoiceData(): void {
+        const currentInvoice = this.invoiceService.getCurrentInvoice();
+        if (currentInvoice) {
+            // Update form with invoice data
+            this.invoiceForm.patchValue({
+                name: currentInvoice.name,
+                email: currentInvoice.email,
+                address: currentInvoice.address,
+                phone: currentInvoice.phone,
+                business: currentInvoice.business,
+                propertyName: currentInvoice.propertyName
+            });
+
+            // Update invoice number
+            this.invoiceNumber = currentInvoice.invoiceNumber;
+
+            // Clear existing items
+            const items = this.getItems();
+            while (items.length > 0) {
+                items.removeAt(0);
+            }
+
+            // Add items from the invoice
+            currentInvoice.items.forEach(item => {
+                items.push(this.fb.group({
+                    description: [item.description, Validators.required],
+                    quantity: [item.quantity, [Validators.required, Validators.min(1)]],
+                    rate: [item.rate, [Validators.required, Validators.min(0)]],
+                    amount: [{ value: item.amount, disabled: true }]
+                }));
+            });
+        }
     }
 
     // Toggle edit mode for template customization
@@ -585,18 +626,23 @@ export class InvoiceCreatorComponent implements OnInit {
 
         switch (this.templateId) {
             case 1:
+                // this.layout = 'classic';
                 this.loadClassicLayout();
                 break;
             case 2:
+                // this.layout = 'modern';
                 this.loadModernLayout();
                 break;
             case 3:
+                // this.layout = 'creative';
                 this.loadCreativeLayout();
                 break;
             case 4:
+                // this.layout = 'minimal';
                 this.loadMinimalLayout();
                 break;
             default:
+                // this.layout = 'classic';
                 this.loadClassicLayout();
         }
     }
@@ -614,13 +660,13 @@ export class InvoiceCreatorComponent implements OnInit {
         this.templateContent['footer-text'] = 'Thank you for choosing our services';
 
         // Add a text custom section
-        this.customSections.push({
-            id: 'section-' + Date.now(),
-            title: 'Payment Terms',
-            content: 'Please make payment within 30 days of receipt.',
-            color: '#f0f0f0',
-            type: 'normal'  // Changed from 'text' to 'normal'
-        });
+        // this.customSections.push({
+        //     id: 'section-' + Date.now(),
+        //     title: 'Payment Terms',
+        //     content: 'Please make payment within 30 days of receipt.',
+        //     color: '#f0f0f0',
+        //     type: 'normal'  // Changed from 'text' to 'normal'
+        // });
     }
 
     loadCreativeLayout(): void {
@@ -629,13 +675,13 @@ export class InvoiceCreatorComponent implements OnInit {
         this.templateContent['footer-text'] = 'Created with passion and precision';
 
         // Add a single text section that highlights drag-drop capability
-        this.customSections.push({
-            id: 'section-' + Date.now(),
-            title: 'Drag & Customize',
-            content: 'This creative template allows you to freely position elements and choose custom colors. Click and drag sections to reposition them, and use the color pickers to create a unique design.',
-            color: '#e6f7ff',
-            type: 'normal'  // Changed from 'text' to 'normal'
-        });
+        // this.customSections.push({
+        //     id: 'section-' + Date.now(),
+        //     title: 'Drag & Customize',
+        //     content: 'This creative template allows you to freely position elements and choose custom colors. Click and drag sections to reposition them, and use the color pickers to create a unique design.',
+        //     color: '#e6f7ff',
+        //     type: 'normal'  // Changed from 'text' to 'normal'
+        // });
     }
 
     loadMinimalLayout(): void {
@@ -709,6 +755,19 @@ export class InvoiceCreatorComponent implements OnInit {
                         border-radius: 8px;
                         overflow: hidden;
                     }
+                    .custom-sections-container {
+                        min-height: 100px;
+                        position: relative;
+                    }
+
+                    .custom-section {
+                        cursor: move;
+                        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+                    }
+
+                    .custom-section:hover {
+                        box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+                                   0 8px 10px 1px rgba(0, 0, 0, 0.14),
                 `;
                 break;
             case 'minimal':
@@ -721,5 +780,106 @@ export class InvoiceCreatorComponent implements OnInit {
         }
 
         return this.sanitizer.bypassSecurityTrustStyle(styles);
+    }
+
+    // getTransform(elementId: string): string {
+    //     if (this.templateId === 3 && this.elementPositions[elementId]) {
+    //         const pos = this.elementPositions[elementId];
+    //         return `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+    //     }
+    //     return '';
+    // }
+
+    // // Add this method to handle the drop event
+    // onDrop(event: CdkDragDrop<CustomSection[]>): void {
+    //     if (this.templateId === 3) {
+    //         moveItemInArray(
+    //             this.customSections,
+    //             event.previousIndex,
+    //             event.currentIndex
+    //         );
+
+    //         // Update positions after reordering
+    //         this.customSections.forEach((section, index) => {
+    //             if (!this.elementPositions[section.id]) {
+    //                 this.elementPositions[section.id] = { x: 0, y: 0 };
+    //             }
+    //             this.elementPositions[section.id] = {
+    //                 x: this.elementPositions[section.id].x,
+    //                 y: index * 20 // Add some vertical spacing between items
+    //             };
+    //         });
+    //     }
+    // }
+
+    // saveInvoice(): void {
+    //     if (this.currentInvoice) {
+    //         // Update the current invoice with any changes made in the editor
+    //         const updatedInvoice: Invoice = {
+    //             ...this.currentInvoice,
+    //             items: this.getItems().controls.map(control => {
+    //                 const item = control.value;
+    //                 return {
+    //                     description: item.description,
+    //                     quantity: item.quantity,
+    //                     rate: item.rate,
+    //                     amount: item.quantity * item.rate
+    //                 };
+    //             }),
+    //             total: this.calculateTotal()
+    //         };
+
+    //         // Save the invoice
+    //         this.invoiceService.saveInvoice(updatedInvoice);
+
+    //         // Show a success message
+    //         alert('Invoice saved successfully!');
+    //     }
+    // }
+
+    // // Call this method after downloading PDF
+    // downloadPdfAndSave(): void {
+    //     this.downloadPdf();
+    //     this.saveInvoice();
+    // }
+
+    // Add these new color picker methods
+    openHeaderColorPicker(): void {
+        // Find the hidden color input and click it
+        const colorInput = document.querySelector('input[type="color"]#headerColorInput') as HTMLInputElement;
+        if (colorInput) {
+            colorInput.click();
+        }
+    }
+
+    openBgColorPicker(): void {
+        // Find the hidden color input and click it
+        const colorInput = document.querySelector('input[type="color"]#bgColorInput') as HTMLInputElement;
+        if (colorInput) {
+            colorInput.click();
+        }
+    }
+
+    openTextColorPicker(): void {
+        // Find the hidden color input and click it
+        const colorInput = document.querySelector('input[type="color"]#textColorInput') as HTMLInputElement;
+        if (colorInput) {
+            colorInput.click();
+        }
+    }
+
+    onHeaderColorChange(color: string): void {
+        this.headerColor = color;
+        this.updateHeaderColor();
+    }
+
+    onBgColorChange(color: string): void {
+        this.backgroundColor = color;
+        this.updateBackgroundColor();
+    }
+
+    onTextColorChange(color: string): void {
+        this.textColor = color;
+        this.updateTextColor();
     }
 } 

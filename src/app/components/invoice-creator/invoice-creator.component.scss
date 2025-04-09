@@ -649,4 +649,49 @@
       }
     }
   }
+}
+
+/* New simple color picker styles */
+.simple-color-pickers {
+  margin: 20px 0;
+  
+  mat-card {
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    
+    mat-card-content {
+      padding: 10px;
+      
+      .color-options {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+        
+        .color-option {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          
+          span {
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.7);
+          }
+          
+          button {
+            width: 36px;
+            height: 36px;
+            border: 2px solid #eee;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            
+            &:hover {
+              transform: scale(1.1);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
 } 

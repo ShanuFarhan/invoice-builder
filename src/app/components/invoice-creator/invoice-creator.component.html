@@ -13,30 +13,42 @@
         <button mat-raised-button color="accent" (click)="addNewItem()" *ngIf="isEditMode">
             <mat-icon>add</mat-icon> Add Item
         </button>
-        <button mat-raised-button color="accent" (click)="addCustomSection()" *ngIf="isEditMode">
-            <mat-icon>note_add</mat-icon> Add Section
-        </button>
+    </div>
 
-        <!-- Enhanced color picker for Creative layout -->
-        <div *ngIf="isEditMode && templateId === 3" class="color-picker-container">
-            <div [ngClass]="{'creative-color-pickers': layout === 'creative'}">
-                <div class="color-picker-item">
-                    <label for="headerColor">Header Color:</label>
-                    <input type="color" id="headerColor" [(ngModel)]="headerColor" (change)="updateHeaderColor()">
-                </div>
+    <!-- New Simple Color Picker -->
+    <div class="simple-color-pickers" *ngIf="isEditMode">
+        <mat-card>
+            <mat-card-content>
+                <div class="color-options">
+                    <div class="color-option">
+                        <span>Header Color: </span>
+                        <button mat-mini-fab [style.background-color]="headerColor"
+                            (click)="openHeaderColorPicker()"></button>
+                        <input #headerColorInput id="headerColorInput" type="color"
+                            style="visibility: hidden; width: 0; height: 0;" [value]="headerColor"
+                            (change)="onHeaderColorChange(headerColorInput.value)">
+                    </div>
 
-                <!-- Additional color options for Creative layout -->
-                <div class="color-picker-item" *ngIf="layout === 'creative'">
-                    <label for="bgColor">Background:</label>
-                    <input type="color" id="bgColor" [(ngModel)]="backgroundColor" (change)="updateBackgroundColor()">
-                </div>
+                    <div class="color-option" *ngIf="layout === 'creative'">
+                        <span>Background: </span>
+                        <button mat-mini-fab [style.background-color]="backgroundColor"
+                            (click)="openBgColorPicker()"></button>
+                        <input #bgColorInput id="bgColorInput" type="color"
+                            style="visibility: hidden; width: 0; height: 0;" [value]="backgroundColor"
+                            (change)="onBgColorChange(bgColorInput.value)">
+                    </div>
 
-                <div class="color-picker-item" *ngIf="layout === 'creative'">
-                    <label for="textColor">Text:</label>
-                    <input type="color" id="textColor" [(ngModel)]="textColor" (change)="updateTextColor()">
+                    <div class="color-option" *ngIf="layout === 'creative'">
+                        <span>Text: </span>
+                        <button mat-mini-fab [style.background-color]="textColor"
+                            (click)="openTextColorPicker()"></button>
+                        <input #textColorInput id="textColorInput" type="color"
+                            style="visibility: hidden; width: 0; height: 0;" [value]="textColor"
+                            (change)="onTextColorChange(textColorInput.value)">
+                    </div>
                 </div>
-            </div>
-        </div>
+            </mat-card-content>
+        </mat-card>
     </div>
 
     <!-- Special instructions for Creative layout when in edit mode -->
@@ -65,7 +77,7 @@
     <div class="invoice-template" id="invoice-template" [ngStyle]="{'background-image': getBackgroundStyle()}"
         [ngClass]="{'edit-mode': isEditMode}">
         <div class="invoice-header" [ngStyle]="getHeaderStyle()" (click)="handleElementClick($event, 'header-title')"
-            cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode || templateId !== 3"
+            cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
             (cdkDragEnded)="onDragEnded($event, 'invoice-header')">
             <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')">INVOICE</h1>
             <div class="edit-overlay" *ngIf="isEditMode">
@@ -74,8 +86,7 @@
         </div>
 
         <div class="invoice-info">
-            <div class="company-info" cdkDragBoundary=".invoice-template" cdkDrag
-                [cdkDragDisabled]="!isEditMode || templateId !== 3"
+            <div class="company-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
                 (cdkDragEnded)="onDragEnded($event, 'company-info')">
                 <h2 [contentEditable]="isEditMode" [id]="'company-name'" (blur)="updateContent('company-name')"
                     (click)="handleElementClick($event, 'company-name')">
@@ -102,8 +113,8 @@
                 </div>
             </div>
 
-            <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag
-                [cdkDragDisabled]="!isEditMode || templateId !== 3" (cdkDragEnded)="onDragEnded($event, 'client-info')">
+            <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'client-info')">
                 <h3 [contentEditable]="isEditMode" [id]="'property-title'" (blur)="updateContent('property-title')"
                     (click)="handleElementClick($event, 'property-title')">
                     Property: {{ invoiceForm.get('propertyName')?.value || 'Property Name' }}
@@ -123,8 +134,8 @@
         </div>
 
 
-        <div class="invoice-items" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || templateId !== 3" (cdkDragEnded)="onDragEnded($event, 'invoice-items')">
+        <div class="invoice-items" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+            (cdkDragEnded)="onDragEnded($event, 'invoice-items')">
             <table>
                 <thead>
                     <tr>
@@ -186,8 +197,8 @@
             </div>
         </div>
 
-        <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || templateId !== 3" (cdkDragEnded)="onDragEnded($event, 'invoice-footer')">
+        <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+            (cdkDragEnded)="onDragEnded($event, 'invoice-footer')">
             <p [contentEditable]="isEditMode" [id]="'footer-text'" (blur)="updateContent('footer-text')"
                 (click)="handleElementClick($event, 'footer-text')">Thank you for your business!</p>
             <div class="edit-overlay" *ngIf="isEditMode">
@@ -195,4 +206,5 @@
             </div>
         </div>
     </div>
+
 </div>

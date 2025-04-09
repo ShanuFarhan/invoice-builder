@@ -1,18 +1,15 @@
 .app-toolbar {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  height: 64px;
 }
 
 .app-title {
-  font-size: 1.5rem;
-  font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
 .spacer {
@@ -20,10 +17,8 @@
 }
 
 .app-content {
+  padding-top: 64px;
   min-height: calc(100vh - 64px);
-  height: auto;
-  background-color: #f8f9fa;
-  overflow: auto;
 }
 
 /* Responsive adjustments */
@@ -40,4 +35,46 @@
   .app-content {
     min-height: calc(100vh - 56px);
   }
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4CAF50, #2196F3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+}
+
+.user-name {
+  margin-right: 8px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.profile-menu-item mat-icon {
+  margin-right: 8px;
 }

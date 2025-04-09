@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Invoice, InvoiceService } from '../../services/invoice.service';
 
 @Component({
     selector: 'app-invoice-form',
@@ -12,7 +13,8 @@ export class InvoiceFormComponent implements OnInit {
 
     constructor(
         private fb: FormBuilder,
-        private router: Router
+        private router: Router,
+        private invoiceService: InvoiceService
     ) {
         this.invoiceForm = this.fb.group({
             name: ['', Validators.required],
@@ -28,6 +30,39 @@ export class InvoiceFormComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        // Check if there's a current invoice we're editing
+        const currentInvoice = this.invoiceService.getCurrentInvoice();
+        if (currentInvoice) {
+            this.populateForm(currentInvoice);
+        }
+    }
+
+    populateForm(invoice: Invoice): void {
+        // Set form values from the invoice
+        this.invoiceForm.patchValue({
+            name: invoice.name,
+            email: invoice.email,
+            address: invoice.address,
+            phone: invoice.phone,
+            business: invoice.business,
+            propertyName: invoice.propertyName
+        });
+
+        // Clear existing items
+        const itemsFormArray = this.getItems();
+        while (itemsFormArray.length > 0) {
+            itemsFormArray.removeAt(0);
+        }
+
+        // Add items from the invoice
+        invoice.items.forEach(item => {
+            itemsFormArray.push(this.fb.group({
+                description: [item.description, Validators.required],
+                quantity: [item.quantity, [Validators.required, Validators.min(1)]],
+                rate: [item.rate, [Validators.required, Validators.min(0)]],
+                amount: [{ value: item.amount, disabled: true }]
+            }));
+        });
     }
 
     createItem(): FormGroup {
@@ -77,8 +112,38 @@ export class InvoiceFormComponent implements OnInit {
 
     onSubmit(): void {
         if (this.invoiceForm.valid) {
-            // Navigate to the invoice creator page
-            this.router.navigate(['/create']);
+            // Get all form data
+            const formData = this.invoiceForm.getRawValue();
+
+            // Create invoice object
+            const invoice: Invoice = {
+                id: crypto.randomUUID(), // Generate a unique ID
+                name: formData.name,
+                email: formData.email,
+                address: formData.address,
+                phone: formData.phone,
+                business: formData.business,
+                propertyName: formData.propertyName,
+                items: formData.items.map((item: any) => ({
+                    ...item,
+                    amount: item.quantity * item.rate
+                })),
+                total: this.calculateTotal(),
+                date: new Date(),
+                invoiceNumber: this.invoiceService.generateInvoiceNumber()
+            };
+
+            // Save invoice to service
+            this.invoiceService.setCurrentInvoice(invoice);
+
+            // Navigate to the invoice creator page with template parameters
+            this.router.navigate(['/create'], {
+                queryParams: {
+                    templateId: 1, // Default template
+                    color: '#3f51b5', // Default color
+                    layout: 'classic' // Default layout
+                }
+            });
         } else {
             // Mark all fields as touched to show validation errors
             this.markFormGroupTouched(this.invoiceForm);

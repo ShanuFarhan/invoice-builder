@@ -292,13 +292,52 @@
       visibility: hidden;
     }
   }
+
+  /* Override autofill styles */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* For Angular Material inputs */
+  .mat-form-field-appearance-outline input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+  }
 </style>
 
 <mat-toolbar color="primary" class="app-toolbar">
-  <span class="app-title" routerLink="/">Custom Invoice Builder</span>
+  <span class="app-title" routerLink="/">Invoice Builder</span>
   <span class="spacer"></span>
-  <button mat-button routerLink="/">Home</button>
-  <button mat-button routerLink="/templates">Templates</button>
+
+  <!-- Show these nav buttons only for authenticated users -->
+  <ng-container *ngIf="(user$ | async)">
+    <button mat-button routerLink="/home">Home</button>
+    <button mat-button routerLink="/invoice">Create Invoice</button>
+    <button mat-button routerLink="/templates">Templates</button>
+
+    <!-- User profile menu -->
+    <button mat-button [matMenuTriggerFor]="profileMenu" class="user-menu-trigger">
+      <!-- <span class="user-name">{{ (user$ | async)?.email?.split('@')[0] }}</span> -->
+      <div class="user-avatar">
+        {{ getInitials((user$ | async)?.email || '') }}
+      </div>
+    </button>
+
+    <mat-menu #profileMenu="matMenu">
+      <div mat-menu-item disabled class="profile-menu-item">
+        <mat-icon>account_circle</mat-icon>
+        <span>{{ (user$ | async)?.email }}</span>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()" class="profile-menu-item">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </ng-container>
 </mat-toolbar>
 
 <main class="app-content">

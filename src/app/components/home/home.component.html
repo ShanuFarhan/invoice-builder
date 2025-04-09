@@ -1,11 +1,61 @@
 <div class="home-container">
-    <div class="background-image">
-        <div class="content">
-            <h1>Custom Invoice Builder</h1>
-            <p>Create professional invoices with custom templates</p>
-            <button mat-raised-button color="primary" class="create-button" (click)="navigateToTemplates()">
-                <mat-icon>add</mat-icon> Create Customized Template
-            </button>
+    <mat-card class="welcome-card">
+        <mat-card-header>
+            <mat-card-title>Welcome, {{userName}}!</mat-card-title>
+            <mat-card-subtitle>Invoice Builder Dashboard</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p>What would you like to do today?</p>
+        </mat-card-content>
+    </mat-card>
+
+    <div class="actions-grid">
+        <mat-card class="action-card" (click)="createNewInvoice()">
+            <mat-icon class="action-icon">receipt</mat-icon>
+            <h3>Create New Invoice</h3>
+            <p>Start a fresh invoice using the form</p>
+        </mat-card>
+
+        <mat-card class="action-card" (click)="navigateToTemplates()">
+            <mat-icon class="action-icon">dashboard</mat-icon>
+            <h3>Select Template</h3>
+            <p>Choose from different invoice templates</p>
+        </mat-card>
+    </div>
+
+    <!-- Saved Invoices Section -->
+    <div class="saved-invoices-section">
+        <h2>Your Saved Invoices</h2>
+
+        <div *ngIf="savedInvoices.length === 0" class="no-invoices">
+            <p>You don't have any saved invoices yet.</p>
+        </div>
+
+        <div class="invoices-grid" *ngIf="savedInvoices.length > 0">
+            <mat-card class="invoice-card" *ngFor="let invoice of savedInvoices" (click)="viewInvoice(invoice)">
+                <mat-card-header>
+                    <mat-card-title>{{invoice.invoiceNumber}}</mat-card-title>
+                    <mat-card-subtitle>{{invoice.date | date:'medium'}}</mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <div class="invoice-details">
+                        <p><strong>For:</strong> {{invoice.propertyName}}</p>
+                        <p><strong>Business:</strong> {{invoice.business}}</p>
+                        <p><strong>Amount:</strong> {{invoice.total | currency}}</p>
+                        <p><strong>Items:</strong> {{invoice.items.length}}</p>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-button color="primary" (click)="editInvoice(invoice); $event.stopPropagation()">
+                        <mat-icon>edit</mat-icon> Edit
+                    </button>
+                    <button mat-button color="warn" (click)="deleteInvoice(invoice.id, $event)">
+                        <mat-icon>delete</mat-icon> Delete
+                    </button>
+                </mat-card-actions>
+            </mat-card>
         </div>
     </div>
 </div>

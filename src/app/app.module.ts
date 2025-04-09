@@ -1,51 +1,51 @@
-import { DragDropModule } from '@angular/cdk/drag-drop';
-import { CommonModule, CurrencyPipe } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+// Firebase imports
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { environment } from '../environments/environment';
+
+// Local modules
 import { AppRoutingModule } from './app-routing.module';
+import { HomeModule } from './components/home/home.module';
+import { InvoiceCreatorModule } from './components/invoice-creator/invoice-creator.module';
+import { InvoiceFormModule } from './components/invoice-form/invoice-form.module';
+import { InvoiceTemplatesModule } from './components/invoice-templates/invoice-templates.module';
+import { SharedModule } from './shared/shared.module';
+
+// Services
+import { InvoiceService } from './services/invoice.service';
+
+// Components
 import { AppComponent } from './app.component';
-import { HomeComponent } from './components/home/home.component';
-import { InvoiceCreatorComponent } from './components/invoice-creator/invoice-creator.component';
-import { InvoiceFormComponent } from './components/invoice-form/invoice-form.component';
-import { InvoiceTemplatesComponent } from './components/invoice-templates/invoice-templates.component';
+import { LoginComponent } from './components/login/login.component';
+
+// Initialize Firebase
+const app = initializeApp(environment.firebase);
+const auth = getAuth(app);
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent,
-    InvoiceCreatorComponent,
-    InvoiceTemplatesComponent,
-    InvoiceFormComponent
+    LoginComponent
   ],
   imports: [
     BrowserModule,
-    CommonModule,
-    AppRoutingModule,
-    FormsModule,
-    ReactiveFormsModule,
     BrowserAnimationsModule,
-    DragDropModule,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatGridListModule
+    AppRoutingModule,
+    SharedModule,
+    InvoiceFormModule,
+    InvoiceCreatorModule,
+    InvoiceTemplatesModule,
+    HomeModule
   ],
-  providers: [CurrencyPipe],
+  providers: [
+    { provide: 'FIREBASE_APP', useValue: app },
+    { provide: 'FIREBASE_AUTH', useValue: auth },
+    InvoiceService
+  ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
