@@ -3,8 +3,14 @@
         <button mat-raised-button color="primary" (click)="downloadPdf()">
             <mat-icon>download</mat-icon> Download PDF
         </button>
+        <button mat-raised-button color="accent" (click)="saveInvoice()">
+            <mat-icon>save</mat-icon> Save Invoice
+        </button>
+        <button mat-raised-button color="primary" (click)="saveInvoiceAndNavigate()">
+            <mat-icon>check</mat-icon> Save & View All
+        </button>
         <button mat-raised-button color="primary" (click)="saveTemplate()" *ngIf="isEditMode">
-            <mat-icon>save</mat-icon> Save Template
+            <mat-icon>save_alt</mat-icon> Save Template
         </button>
         <button mat-raised-button [color]="isEditMode ? 'warn' : 'accent'" (click)="toggleEditMode()">
             <mat-icon>{{ isEditMode ? 'cancel' : 'edit' }}</mat-icon> {{ isEditMode ? 'Exit Edit Mode' : 'Customize
@@ -74,19 +80,27 @@
         </mat-card>
     </div>
 
+    <!-- Classic Layout Invoice -->
     <div class="invoice-template" id="invoice-template" [ngStyle]="{'background-image': getBackgroundStyle()}"
-        [ngClass]="{'edit-mode': isEditMode}">
-        <div class="invoice-header" [ngStyle]="getHeaderStyle()" (click)="handleElementClick($event, 'header-title')"
-            cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+        [ngClass]="{'edit-mode': isEditMode, 'classic-layout': layout === 'classic', 'modern-layout': layout === 'modern', 'creative-layout': layout === 'creative'}">
+
+        <!-- Header Section -->
+        <div class="invoice-header" [ngStyle]="getHeaderStyle()" cdkDragBoundary=".invoice-template" cdkDrag
+            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
             (cdkDragEnded)="onDragEnded($event, 'invoice-header')">
-            <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')">INVOICE</h1>
+            <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')"
+                (click)="handleElementClick($event, 'header-title')">INVOICE</h1>
             <div class="edit-overlay" *ngIf="isEditMode">
                 <mat-icon>drag_indicator</mat-icon>
             </div>
         </div>
 
-        <div class="invoice-info">
-            <div class="company-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+        <!-- Invoice Info Section -->
+        <div class="invoice-info"
+            [ngClass]="{'modern-info': layout === 'modern', 'creative-info': layout === 'creative'}">
+            <!-- Company Info -->
+            <div class="company-info" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
                 (cdkDragEnded)="onDragEnded($event, 'company-info')">
                 <h2 [contentEditable]="isEditMode" [id]="'company-name'" (blur)="updateContent('company-name')"
                     (click)="handleElementClick($event, 'company-name')">
@@ -94,7 +108,8 @@
                 </h2>
                 <p [contentEditable]="isEditMode" [id]="'company-person'" (blur)="updateContent('company-person')"
                     (click)="handleElementClick($event, 'company-person')">
-                    {{ invoiceForm.get('name')?.value || 'Your Name' }}
+                    {{ layout === 'modern' ? 'FROM' : (layout === 'creative' ? 'HELLO,' : invoiceForm.get('name')?.value
+                    || 'Your Name') }}
                 </p>
                 <p [contentEditable]="isEditMode" [id]="'company-email'" (blur)="updateContent('company-email')"
                     (click)="handleElementClick($event, 'company-email')">
@@ -113,40 +128,75 @@
                 </div>
             </div>
 
-            <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+            <!-- Client Info -->
+            <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
                 (cdkDragEnded)="onDragEnded($event, 'client-info')">
                 <h3 [contentEditable]="isEditMode" [id]="'property-title'" (blur)="updateContent('property-title')"
                     (click)="handleElementClick($event, 'property-title')">
-                    Property: {{ invoiceForm.get('propertyName')?.value || 'Property Name' }}
+                    {{ layout === 'modern' ? 'TO' : (layout === 'creative' ? 'PROJECT FOR' : 'Bill To') }}: {{
+                    invoiceForm.get('propertyName')?.value || 'Client Name' }}
                 </h3>
                 <p [contentEditable]="isEditMode" [id]="'invoice-number'" (blur)="updateContent('invoice-number')"
                     (click)="handleElementClick($event, 'invoice-number')">
-                    <strong>Invoice #:</strong> INV-{{ invoiceNumber }}
+                    <strong>{{ layout === 'modern' ? '#INV-' : 'Invoice #:' }}</strong> {{ invoiceNumber }}
                 </p>
                 <p [contentEditable]="isEditMode" [id]="'invoice-date'" (blur)="updateContent('invoice-date')"
                     (click)="handleElementClick($event, 'invoice-date')">
-                    <strong>Date:</strong> {{ today | date:'mediumDate' }}
+                    <strong>{{ layout === 'modern' ? 'Issued: ' : 'Date:' }}</strong> {{ today | date:'mediumDate' }}
                 </p>
+                <p *ngIf="layout !== 'creative'" [contentEditable]="isEditMode" [id]="'due-date'"
+                    (blur)="updateContent('due-date')" (click)="handleElementClick($event, 'due-date')">
+                    <strong>{{ layout === 'modern' ? 'Due: ' : 'Due Date:' }}</strong> {{ today | date:'mediumDate' }}
+                </p>
+                <div *ngIf="layout === 'modern'" [contentEditable]="isEditMode" [id]="'project-title'"
+                    (blur)="updateContent('project-title')" (click)="handleElementClick($event, 'project-title')"
+                    class="project-title">
+                    PROJECT: Client Project
+                </div>
                 <div class="edit-overlay" *ngIf="isEditMode">
                     <mat-icon>drag_indicator</mat-icon>
                 </div>
             </div>
         </div>
 
+        <!-- Section Title for Creative Layout -->
+        <div *ngIf="layout === 'creative'" class="section-title" cdkDragBoundary=".invoice-template" cdkDrag
+            [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'section-title')">
+            <h3 [contentEditable]="isEditMode" [id]="'section-title'" (blur)="updateContent('section-title')"
+                (click)="handleElementClick($event, 'section-title')">
+                THE AWESOME WORK WE DID FOR YOU
+            </h3>
+            <div class="edit-overlay" *ngIf="isEditMode">
+                <mat-icon>drag_indicator</mat-icon>
+            </div>
+        </div>
 
-        <div class="invoice-items" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+        <!-- Invoice Items Table -->
+        <div class="invoice-items" cdkDragBoundary=".invoice-template" cdkDrag
+            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
             (cdkDragEnded)="onDragEnded($event, 'invoice-items')">
-            <table>
+            <table [ngClass]="{'modern-table': layout === 'modern', 'creative-table': layout === 'creative'}">
                 <thead>
                     <tr>
                         <th [contentEditable]="isEditMode" [id]="'col-desc'" (blur)="updateContent('col-desc')"
-                            (click)="handleElementClick($event, 'col-desc')">Description</th>
+                            (click)="handleElementClick($event, 'col-desc')">
+                            {{ layout === 'creative' ? 'CREATIVE SERVICE' : (layout === 'modern' ? 'SERVICE' :
+                            'Description') }}
+                        </th>
                         <th [contentEditable]="isEditMode" [id]="'col-qty'" (blur)="updateContent('col-qty')"
-                            (click)="handleElementClick($event, 'col-qty')">Quantity</th>
+                            (click)="handleElementClick($event, 'col-qty')">
+                            {{ layout === 'creative' ? 'MAGIC DELIVERED' : (layout === 'modern' ? 'HOURS/QTY' :
+                            'Quantity') }}
+                        </th>
                         <th [contentEditable]="isEditMode" [id]="'col-rate'" (blur)="updateContent('col-rate')"
-                            (click)="handleElementClick($event, 'col-rate')">Rate</th>
+                            (click)="handleElementClick($event, 'col-rate')">
+                            {{ layout === 'creative' ? 'VALUE PER UNIT' : (layout === 'modern' ? 'RATE' : 'Rate') }}
+                        </th>
                         <th [contentEditable]="isEditMode" [id]="'col-amount'" (blur)="updateContent('col-amount')"
-                            (click)="handleElementClick($event, 'col-amount')">Amount</th>
+                            (click)="handleElementClick($event, 'col-amount')">
+                            {{ layout === 'creative' ? 'TOTAL MAGIC' : 'Amount' }}
+                        </th>
                         <th *ngIf="isEditMode" class="action-column">Actions</th>
                     </tr>
                 </thead>
@@ -183,7 +233,9 @@
                     <tr>
                         <td colspan="3" class="total-label" [contentEditable]="isEditMode" [id]="'total-label'"
                             (blur)="updateContent('total-label')" (click)="handleElementClick($event, 'total-label')">
-                            Total</td>
+                            {{ layout === 'creative' ? 'THE GRAND TOTAL' : (layout === 'modern' ? 'TOTAL DUE' : 'Total')
+                            }}
+                        </td>
                         <td class="total-amount" [contentEditable]="isEditMode" [id]="'total-amount'"
                             (blur)="updateContent('total-amount')" (click)="handleElementClick($event, 'total-amount')">
                             {{ calculateTotal() | currency }}
@@ -197,10 +249,36 @@
             </div>
         </div>
 
-        <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+        <!-- Custom Sections Area - will contain payment info, notes, etc. -->
+        <div *ngFor="let section of customSections; let i = index" class="custom-section"
+            [style.background-color]="section.color" cdkDragBoundary=".invoice-template" cdkDrag
+            [cdkDragDisabled]="!isEditMode || layout !== 'creative'" (cdkDragEnded)="onDragEnded($event, section.id)">
+
+            <h3 [id]="'section-title-' + i" [contentEditable]="isEditMode" (blur)="updateSectionContent(i, 'title')">
+                {{section.title}}
+            </h3>
+
+            <div [id]="'section-content-' + i" [contentEditable]="isEditMode"
+                (blur)="updateSectionContent(i, 'content')" class="section-content"
+                [innerHTML]="section.content | lineBreakTransform">
+            </div>
+
+            <div class="section-controls" *ngIf="isEditMode">
+                <button mat-icon-button color="warn" (click)="removeCustomSection(section)">
+                    <mat-icon>delete</mat-icon>
+                </button>
+                <input type="color" [(ngModel)]="section.color" (change)="updateSectionColor(i)">
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag
+            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
             (cdkDragEnded)="onDragEnded($event, 'invoice-footer')">
             <p [contentEditable]="isEditMode" [id]="'footer-text'" (blur)="updateContent('footer-text')"
-                (click)="handleElementClick($event, 'footer-text')">Thank you for your business!</p>
+                (click)="handleElementClick($event, 'footer-text')"
+                [innerHTML]="templateContent['footer-text'] ? (templateContent['footer-text'] | lineBreakTransform) : 'Thank you for your business!'">
+            </p>
             <div class="edit-overlay" *ngIf="isEditMode">
                 <mat-icon>drag_indicator</mat-icon>
             </div>

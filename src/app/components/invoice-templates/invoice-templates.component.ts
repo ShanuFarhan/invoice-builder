@@ -25,7 +25,7 @@ export class InvoiceTemplatesComponent implements OnInit {
             color: '#3f51b5',
             description: 'Traditional business invoice with a clean, professional layout',
             layout: 'classic',
-            features: ['Company header', 'Detailed item table', 'Payment terms section', 'Professional footer']
+            features: ['Formal business structure', 'Clear billing details', 'Payment terms section', 'Professional formatting']
         },
         {
             id: 2,
@@ -34,16 +34,16 @@ export class InvoiceTemplatesComponent implements OnInit {
             color: '#673ab7',
             description: 'Contemporary design with modern typography and spacing',
             layout: 'modern',
-            features: ['Bold header', 'Minimalist item layout', 'Custom sections support']
+            features: ['Bold typography', 'Structured layout', 'Payment details section', 'Project-focused design']
         },
         {
             id: 3,
             name: 'Creative Studio',
             image: '/assets/images/template3.jpg',
-            color: '#2196f3',
+            color: '#8e44ad',
             description: 'Artistic layout perfect for creative professionals',
             layout: 'creative',
-            features: ['Drag and Drop Functionality', 'Custom section layouts', 'Modern color scheme', 'Creative typography']
+            features: ['Unique creative styling', 'Customizable sections', 'Visual appeal', 'Personality and flair']
         },
     ];
 
@@ -57,7 +57,8 @@ export class InvoiceTemplatesComponent implements OnInit {
         this.router.navigate(['/create'], {
             queryParams: {
                 templateId: template.id,
-                color: template.color
+                color: template.color,
+                layout: template.layout
             }
         });
     }

@@ -89,6 +89,10 @@ export class InvoiceCreatorComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        // First load invoice data if available
+        this.loadInvoiceData();
+
+        // Then apply URL parameters if provided (they will override the invoice data)
         this.route.queryParams.subscribe(params => {
             if (params['templateId']) {
                 this.templateId = +params['templateId'];
@@ -100,12 +104,12 @@ export class InvoiceCreatorComponent implements OnInit {
                 this.layout = params['layout'];
             }
 
-            this.loadTemplateLayout(); // New method to load layout-specific content
-            this.loadSavedTemplate();
+            // Load default layout content if needed
+            if (!this.currentInvoice) {
+                this.loadTemplateLayout();
+                this.loadSavedTemplate();
+            }
         });
-
-        // Load invoice data if available
-        this.loadInvoiceData();
     }
 
     loadInvoiceData(): void {
@@ -139,6 +143,36 @@ export class InvoiceCreatorComponent implements OnInit {
                     amount: [{ value: item.amount, disabled: true }]
                 }));
             });
+
+            // Load template customization properties if available
+            if (currentInvoice.templateId) {
+                this.templateId = currentInvoice.templateId;
+            }
+            if (currentInvoice.headerColor) {
+                this.headerColor = currentInvoice.headerColor;
+            }
+            if (currentInvoice.backgroundColor) {
+                this.backgroundColor = currentInvoice.backgroundColor;
+            }
+            if (currentInvoice.textColor) {
+                this.textColor = currentInvoice.textColor;
+                // Apply text color
+                setTimeout(() => this.updateTextColor(), 100);
+            }
+            if (currentInvoice.layout) {
+                this.layout = currentInvoice.layout;
+            }
+            if (currentInvoice.templateContent) {
+                this.templateContent = { ...currentInvoice.templateContent };
+                // Apply template content
+                this.applyTemplateContent();
+            }
+            if (currentInvoice.elementPositions) {
+                this.elementPositions = { ...currentInvoice.elementPositions };
+            }
+            if (currentInvoice.customSections) {
+                this.customSections = [...currentInvoice.customSections];
+            }
         }
     }
 
@@ -344,6 +378,9 @@ export class InvoiceCreatorComponent implements OnInit {
             this.templateContent = savedTemplate.content;
             this.elementPositions = savedTemplate.positions;
             this.headerColor = savedTemplate.headerColor;
+
+            // Apply template content
+            this.applyTemplateContent();
 
             // Load additional color settings if available
             if (savedTemplate.backgroundColor) {
@@ -626,23 +663,23 @@ export class InvoiceCreatorComponent implements OnInit {
 
         switch (this.templateId) {
             case 1:
-                // this.layout = 'classic';
+                this.layout = 'classic';
                 this.loadClassicLayout();
                 break;
             case 2:
-                // this.layout = 'modern';
+                this.layout = 'modern';
                 this.loadModernLayout();
                 break;
             case 3:
-                // this.layout = 'creative';
+                this.layout = 'creative';
                 this.loadCreativeLayout();
                 break;
             case 4:
-                // this.layout = 'minimal';
+                this.layout = 'minimal';
                 this.loadMinimalLayout();
                 break;
             default:
-                // this.layout = 'classic';
+                this.layout = 'classic';
                 this.loadClassicLayout();
         }
     }
@@ -650,38 +687,90 @@ export class InvoiceCreatorComponent implements OnInit {
     loadClassicLayout(): void {
         // Traditional layout with formal header and conventional invoice sections
         this.templateContent['header-title'] = 'INVOICE';
+        this.templateContent['company-name'] = 'Your Company Name';
+        this.templateContent['company-person'] = 'Your Name';
+        this.templateContent['company-email'] = 'your.email@example.com';
+        this.templateContent['company-phone'] = '(123) 456-7890';
+        this.templateContent['company-address'] = '123 Street Address, City, State ZIP';
+        this.templateContent['property-title'] = 'Bill To';
+        this.templateContent['invoice-number'] = 'Invoice #: INV-' + this.getRandomInvoiceNumber();
+        this.templateContent['invoice-date'] = 'Date: ' + new Date().toLocaleDateString();
+        this.templateContent['due-date'] = 'Due Date: ' + new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString();
+        this.templateContent['col-desc'] = 'ITEM DESCRIPTION';
+        this.templateContent['col-qty'] = 'QUANTITY';
+        this.templateContent['col-rate'] = 'UNIT PRICE';
+        this.templateContent['col-amount'] = 'AMOUNT';
+        this.templateContent['total-label'] = 'TOTAL';
+        this.templateContent['payment-terms'] = 'Payment Terms: Net 30';
+        this.templateContent['payment-methods'] = 'Payment Methods: Check, Credit Card, Bank Transfer';
         this.templateContent['footer-text'] = 'Thank you for your business!';
-        // No custom sections by default for classic layout
+        this.templateContent['notes'] = 'Notes: Any additional information, terms, or conditions.';
     }
 
     loadModernLayout(): void {
         // Contemporary layout with bold styling
         this.templateContent['header-title'] = 'INVOICE';
-        this.templateContent['footer-text'] = 'Thank you for choosing our services';
+        this.templateContent['company-name'] = 'Your Company Name';
+        this.templateContent['company-person'] = 'FROM';
+        this.templateContent['company-email'] = 'your.email@example.com';
+        this.templateContent['company-phone'] = '(123) 456-7890';
+        this.templateContent['company-address'] = '123 Street Address, City, State ZIP';
+        this.templateContent['property-title'] = 'TO';
+        this.templateContent['invoice-number'] = '#INV-' + this.getRandomInvoiceNumber();
+        this.templateContent['invoice-date'] = 'Issued: ' + new Date().toLocaleDateString();
+        this.templateContent['due-date'] = 'Due: ' + new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString();
+        this.templateContent['project-title'] = 'PROJECT: Client Project';
+        this.templateContent['col-desc'] = 'SERVICE';
+        this.templateContent['col-qty'] = 'HOURS/QTY';
+        this.templateContent['col-rate'] = 'RATE';
+        this.templateContent['col-amount'] = 'AMOUNT';
+        this.templateContent['total-label'] = 'TOTAL DUE';
+        this.templateContent['payment-details'] = 'PAYMENT DETAILS';
+        this.templateContent['bank-info'] = 'Bank Name: [Bank Name]\nAccount Name: [Account Name]\nAccount Number: [Account Number]\nRouting Number: [Routing Number]';
+        this.templateContent['payment-link'] = 'Or pay online: [Payment Link]';
+        this.templateContent['footer-text'] = 'Terms: Payment due within 30 days of receipt\nThank you for your business!';
 
-        // Add a text custom section
-        // this.customSections.push({
-        //     id: 'section-' + Date.now(),
-        //     title: 'Payment Terms',
-        //     content: 'Please make payment within 30 days of receipt.',
-        //     color: '#f0f0f0',
-        //     type: 'normal'  // Changed from 'text' to 'normal'
-        // });
+        // Add a payment details custom section
+        this.customSections.push({
+            id: 'section-' + Date.now(),
+            title: 'PAYMENT DETAILS',
+            content: 'Bank Name: [Bank Name]\nAccount Name: [Account Name]\nAccount Number: [Account Number]\nRouting Number: [Routing Number]\n\nOr pay online: [Payment Link]',
+            color: '#f8f9fa',
+            type: 'normal'
+        });
     }
 
     loadCreativeLayout(): void {
         // Artistic layout with unique sections and focus on drag-drop and color customization
-        this.templateContent['header-title'] = 'CREATIVE INVOICE';
-        this.templateContent['footer-text'] = 'Created with passion and precision';
+        this.headerColor = '#8e44ad'; // Purple color for creative template
+        this.backgroundColor = '#f9f9ff'; // Light purple tint
+        this.textColor = '#333333';
 
-        // Add a single text section that highlights drag-drop capability
-        // this.customSections.push({
-        //     id: 'section-' + Date.now(),
-        //     title: 'Drag & Customize',
-        //     content: 'This creative template allows you to freely position elements and choose custom colors. Click and drag sections to reposition them, and use the color pickers to create a unique design.',
-        //     color: '#e6f7ff',
-        //     type: 'normal'  // Changed from 'text' to 'normal'
-        // });
+        this.templateContent['header-title'] = '⚡ CREATIVE INVOICE ⚡';
+        this.templateContent['company-name'] = 'Your Awesome Creative Business';
+        this.templateContent['company-person'] = 'HELLO,';
+        this.templateContent['company-email'] = 'creative@example.com';
+        this.templateContent['company-phone'] = '(123) 456-7890';
+        this.templateContent['company-address'] = '123 Imagination Lane, Creativity City';
+        this.templateContent['property-title'] = 'PROJECT FOR';
+        this.templateContent['invoice-number'] = 'INVOICE #: ' + this.getRandomInvoiceNumber();
+        this.templateContent['invoice-date'] = 'DATE: ' + new Date().toLocaleDateString();
+        this.templateContent['section-title'] = 'THE AWESOME WORK WE DID FOR YOU';
+        this.templateContent['col-desc'] = 'CREATIVE SERVICE';
+        this.templateContent['col-qty'] = 'MAGIC DELIVERED';
+        this.templateContent['col-rate'] = 'VALUE PER UNIT';
+        this.templateContent['col-amount'] = 'TOTAL MAGIC';
+        this.templateContent['total-label'] = 'THE GRAND TOTAL';
+        this.templateContent['footer-text'] = 'THANK YOU FOR CHOOSING OUR CREATIVE SERVICES!\nPayment due within 14 days • Questions? creative@example.com';
+
+        // Add creative sections
+        this.customSections.push({
+            id: 'section-' + Date.now(),
+            title: 'SEND YOUR MAGIC PAYMENT TO',
+            content: '✧ Digital Payment: [Payment Link/QR Code]\n✧ By Carrier Pigeon: [Your Address]\n✧ Telepathically: Just kidding! But we accept credit cards, PayPal, and bank transfers.',
+            color: '#e8e4f3',
+            type: 'normal'
+        });
     }
 
     loadMinimalLayout(): void {
@@ -812,36 +901,62 @@ export class InvoiceCreatorComponent implements OnInit {
     //     }
     // }
 
-    // saveInvoice(): void {
-    //     if (this.currentInvoice) {
-    //         // Update the current invoice with any changes made in the editor
-    //         const updatedInvoice: Invoice = {
-    //             ...this.currentInvoice,
-    //             items: this.getItems().controls.map(control => {
-    //                 const item = control.value;
-    //                 return {
-    //                     description: item.description,
-    //                     quantity: item.quantity,
-    //                     rate: item.rate,
-    //                     amount: item.quantity * item.rate
-    //                 };
-    //             }),
-    //             total: this.calculateTotal()
-    //         };
+    // Save current invoice
+    saveInvoice(): void {
+        // Create or update the invoice
+        const formValues = this.invoiceForm.value;
 
-    //         // Save the invoice
-    //         this.invoiceService.saveInvoice(updatedInvoice);
+        // Generate items with calculated amounts
+        const items = this.getItems().controls.map(control => {
+            const item = control.value;
+            return {
+                description: item.description,
+                quantity: item.quantity,
+                rate: item.rate,
+                amount: item.quantity * item.rate
+            };
+        });
 
-    //         // Show a success message
-    //         alert('Invoice saved successfully!');
-    //     }
-    // }
+        // Create the invoice object
+        const invoice: Invoice = {
+            id: this.currentInvoice?.id || 'invoice_' + Date.now(),
+            name: formValues.name,
+            email: formValues.email,
+            address: formValues.address,
+            phone: formValues.phone,
+            business: formValues.business,
+            propertyName: formValues.propertyName,
+            items: items,
+            total: this.calculateTotal(),
+            date: new Date(),
+            invoiceNumber: this.invoiceNumber,
+            // Include template customization properties
+            templateId: this.templateId,
+            headerColor: this.headerColor,
+            backgroundColor: this.backgroundColor,
+            textColor: this.textColor,
+            layout: this.layout,
+            templateContent: { ...this.templateContent },
+            elementPositions: { ...this.elementPositions },
+            customSections: [...this.customSections]
+        };
 
-    // // Call this method after downloading PDF
-    // downloadPdfAndSave(): void {
-    //     this.downloadPdf();
-    //     this.saveInvoice();
-    // }
+        // Save the invoice
+        this.invoiceService.saveInvoice(invoice);
+
+        // Update the current invoice
+        this.currentInvoice = invoice;
+        this.invoiceService.setCurrentInvoice(invoice);
+
+        // Show success message
+        alert('Invoice saved successfully!');
+    }
+
+    // Call this method after downloading PDF
+    downloadPdfAndSave(): void {
+        this.downloadPdf();
+        this.saveInvoice();
+    }
 
     // Add these new color picker methods
     openHeaderColorPicker(): void {
@@ -881,5 +996,24 @@ export class InvoiceCreatorComponent implements OnInit {
     onTextColorChange(color: string): void {
         this.textColor = color;
         this.updateTextColor();
+    }
+
+    // Save invoice and navigate to home
+    saveInvoiceAndNavigate(): void {
+        this.saveInvoice();
+        this.router.navigate(['/home']);
+    }
+
+    // Apply template content to DOM elements
+    applyTemplateContent(): void {
+        // Apply saved content to editable elements
+        setTimeout(() => {
+            Object.keys(this.templateContent).forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.innerText = this.templateContent[elementId];
+                }
+            });
+        }, 100); // Small delay to ensure DOM elements are available
     }
 } 

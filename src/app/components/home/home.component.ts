@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Invoice, InvoiceService } from '../../services/invoice.service';
@@ -18,6 +18,12 @@ export class HomeComponent implements OnInit {
         private invoiceService: InvoiceService
     ) { }
 
+    // Reload invoices when the user comes back to this page
+    @HostListener('window:focus', ['$event'])
+    onFocus(event: FocusEvent): void {
+        this.loadSavedInvoices();
+    }
+
     ngOnInit(): void {
         this.authService.user$.subscribe(user => {
             this.userName = user?.email?.split('@')[0] || 'User';
@@ -29,6 +35,12 @@ export class HomeComponent implements OnInit {
 
     loadSavedInvoices(): void {
         this.savedInvoices = this.invoiceService.getAllInvoices();
+        // Sort invoices by date (newest first)
+        this.savedInvoices.sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return dateB - dateA;
+        });
     }
 
     createNewInvoice(): void {
@@ -46,7 +58,15 @@ export class HomeComponent implements OnInit {
     viewInvoice(invoice: Invoice): void {
         // Set the current invoice for viewing
         this.invoiceService.setCurrentInvoice(invoice);
-        this.router.navigate(['/create']);
+
+        // Navigate to the invoice creator with the right parameters
+        this.router.navigate(['/create'], {
+            queryParams: {
+                // Include these parameters to ensure the layout loads properly
+                templateId: invoice.templateId || 1,
+                layout: invoice.layout || 'classic'
+            }
+        });
     }
 
     deleteInvoice(id: string, event: Event): void {
@@ -59,5 +79,10 @@ export class HomeComponent implements OnInit {
 
     navigateToTemplates(): void {
         this.router.navigate(['/templates']);
+    }
+
+    // Format the date for display
+    formatDate(date: Date): string {
+        return new Date(date).toLocaleString();
     }
 } 

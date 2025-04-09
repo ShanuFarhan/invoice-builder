@@ -20,6 +20,15 @@ export interface Invoice {
     total: number;
     date: Date;
     invoiceNumber: string;
+    // Template customization properties
+    templateId?: number;
+    headerColor?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    layout?: string;
+    templateContent?: { [key: string]: string };
+    elementPositions?: { [key: string]: { x: number, y: number } };
+    customSections?: any[];
 }
 
 @Injectable({
@@ -33,12 +42,40 @@ export class InvoiceService {
 
     constructor() {
         // Load saved invoices from localStorage if available
+        this.loadInvoicesFromStorage();
+    }
+
+    // Load invoices from localStorage
+    private loadInvoicesFromStorage(): void {
         const savedInvoices = localStorage.getItem('invoices');
         if (savedInvoices) {
             try {
                 this.invoices = JSON.parse(savedInvoices);
+
+                // Process invoices to ensure all properties are correct
+                this.invoices = this.invoices.map(invoice => {
+                    // Convert string dates to Date objects
+                    const processedInvoice = {
+                        ...invoice,
+                        date: new Date(invoice.date)
+                    };
+
+                    // Ensure template properties are properly initialized if missing
+                    if (!processedInvoice.templateId) processedInvoice.templateId = 1;
+                    if (!processedInvoice.layout) processedInvoice.layout = 'classic';
+                    if (!processedInvoice.headerColor) processedInvoice.headerColor = '#3f51b5';
+                    if (!processedInvoice.backgroundColor) processedInvoice.backgroundColor = '#ffffff';
+                    if (!processedInvoice.textColor) processedInvoice.textColor = '#000000';
+                    if (!processedInvoice.templateContent) processedInvoice.templateContent = {};
+                    if (!processedInvoice.elementPositions) processedInvoice.elementPositions = {};
+                    if (!processedInvoice.customSections) processedInvoice.customSections = [];
+
+                    return processedInvoice;
+                });
             } catch (e) {
                 console.error('Error loading saved invoices:', e);
+                // If there's an error, initialize to empty array
+                this.invoices = [];
             }
         }
     }
@@ -60,6 +97,16 @@ export class InvoiceService {
     }
 
     saveInvoice(invoice: Invoice): void {
+        // Ensure the invoice has an ID
+        if (!invoice.id) {
+            invoice.id = 'invoice_' + Date.now();
+        }
+
+        // Ensure the invoice has a date
+        if (!invoice.date) {
+            invoice.date = new Date();
+        }
+
         // If the invoice already exists, update it
         const existingIndex = this.invoices.findIndex(inv => inv.id === invoice.id);
 
@@ -75,6 +122,8 @@ export class InvoiceService {
     }
 
     getAllInvoices(): Invoice[] {
+        // Refresh from storage in case it was updated elsewhere
+        this.loadInvoicesFromStorage();
         return this.invoices;
     }
 

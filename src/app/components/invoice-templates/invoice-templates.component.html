@@ -11,7 +11,21 @@
                 <mat-card-subtitle>{{ template.layout | titlecase }} Layout</mat-card-subtitle>
             </mat-card-header>
 
-            <!-- <img mat-card-image [src]="template.image" alt="{{ template.name }} template"> -->
+            <!-- Template Preview -->
+            <div class="template-preview" [ngClass]="'preview-' + template.layout">
+                <div class="preview-header" [style.background-color]="template.color">
+                    <div class="preview-title">INVOICE</div>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-row"></div>
+                    <div class="preview-row"></div>
+                    <div class="preview-table">
+                        <div class="preview-table-row"></div>
+                        <div class="preview-table-row"></div>
+                    </div>
+                    <div class="preview-footer"></div>
+                </div>
+            </div>
 
             <mat-card-content>
                 <p class="template-description">{{ template.description }}</p>

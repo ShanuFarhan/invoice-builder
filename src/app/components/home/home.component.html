@@ -29,20 +29,27 @@
 
         <div *ngIf="savedInvoices.length === 0" class="no-invoices">
             <p>You don't have any saved invoices yet.</p>
+            <button mat-raised-button color="primary" (click)="createNewInvoice()">
+                <mat-icon>add</mat-icon> Create Your First Invoice
+            </button>
         </div>
 
         <div class="invoices-grid" *ngIf="savedInvoices.length > 0">
             <mat-card class="invoice-card" *ngFor="let invoice of savedInvoices" (click)="viewInvoice(invoice)">
                 <mat-card-header>
-                    <mat-card-title>{{invoice.invoiceNumber}}</mat-card-title>
-                    <mat-card-subtitle>{{invoice.date | date:'medium'}}</mat-card-subtitle>
+                    <mat-card-title>
+                        <div class="invoice-number">{{invoice.invoiceNumber}}</div>
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                        <div class="invoice-date">{{formatDate(invoice.date)}}</div>
+                    </mat-card-subtitle>
                 </mat-card-header>
 
                 <mat-card-content>
                     <div class="invoice-details">
-                        <p><strong>For:</strong> {{invoice.propertyName}}</p>
+                        <p><strong>Client:</strong> {{invoice.propertyName}}</p>
                         <p><strong>Business:</strong> {{invoice.business}}</p>
-                        <p><strong>Amount:</strong> {{invoice.total | currency}}</p>
+                        <p class="invoice-amount"><strong>Total:</strong> {{invoice.total | currency}}</p>
                         <p><strong>Items:</strong> {{invoice.items.length}}</p>
                     </div>
                 </mat-card-content>
