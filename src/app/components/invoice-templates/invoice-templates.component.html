@@ -8,6 +8,12 @@
                 <mat-icon>add</mat-icon>
                 Create Custom Template
             </button>
+
+            <!-- Add subscription toggle button for demo -->
+            <button mat-raised-button color="primary" (click)="toggleSubscription()" class="subscription-toggle">
+                <mat-icon>{{isSubscribed ? 'star' : 'star_border'}}</mat-icon>
+                {{isSubscribed ? 'Cancel Subscription' : 'Demo: Subscribe'}}
+            </button>
         </div>
     </div>
 
@@ -16,7 +22,12 @@
     <div class="templates-grid">
         <mat-card class="template-card" *ngFor="let template of templates" (click)="selectTemplate(template)">
             <mat-card-header [style.background-color]="template.color">
-                <mat-card-title>{{ template.name }}</mat-card-title>
+                <mat-card-title>
+                    {{ template.name }}
+                    <span class="subscription-badge" *ngIf="template.requiresSubscription">
+                        <mat-icon matTooltip="Premium - Requires Subscription">stars</mat-icon>
+                    </span>
+                </mat-card-title>
                 <mat-card-subtitle>{{ template.layout | titlecase }} Layout</mat-card-subtitle>
             </mat-card-header>
 
@@ -33,6 +44,12 @@
                         <div class="preview-table-row"></div>
                     </div>
                     <div class="preview-footer"></div>
+                </div>
+
+                <!-- Add overlay for subscription templates -->
+                <div class="premium-overlay" *ngIf="template.requiresSubscription && !isSubscribed">
+                    <mat-icon class="premium-icon">lock</mat-icon>
+                    <span>Premium Template</span>
                 </div>
             </div>
 
@@ -51,8 +68,8 @@
 
             <mat-card-actions>
                 <button mat-raised-button [color]="'primary'" class="select-button">
-                    <mat-icon>edit</mat-icon>
-                    CUSTOMIZE TEMPLATE
+                    <mat-icon>{{template.requiresSubscription && !isSubscribed ? 'lock' : 'edit'}}</mat-icon>
+                    {{template.requiresSubscription && !isSubscribed ? 'PREMIUM TEMPLATE' : 'CUSTOMIZE TEMPLATE'}}
                 </button>
             </mat-card-actions>
         </mat-card>

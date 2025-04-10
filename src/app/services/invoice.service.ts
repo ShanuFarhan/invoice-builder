@@ -90,10 +90,20 @@ export class InvoiceService {
     private invoices: Invoice[] = [];
     private customTemplates: CustomTemplate[] = [];
 
+    // Add subscription status property
+    private isSubscribedSubject = new BehaviorSubject<boolean>(false);
+    isSubscribed$ = this.isSubscribedSubject.asObservable();
+
     constructor() {
         // Load saved invoices from localStorage if available
         this.loadInvoicesFromStorage();
         this.loadCustomTemplatesFromStorage();
+
+        // Check for saved subscription status
+        const savedSubscriptionStatus = localStorage.getItem('isSubscribed');
+        if (savedSubscriptionStatus) {
+            this.isSubscribedSubject.next(savedSubscriptionStatus === 'true');
+        }
     }
 
     // Load invoices from localStorage
@@ -365,5 +375,20 @@ export class InvoiceService {
                 footer: { visible: true, content: 'Thank you for your business!' }
             }
         };
+    }
+
+    // Subscription methods
+    getSubscriptionStatus(): boolean {
+        return this.isSubscribedSubject.value;
+    }
+
+    setSubscriptionStatus(isSubscribed: boolean): void {
+        this.isSubscribedSubject.next(isSubscribed);
+        localStorage.setItem('isSubscribed', isSubscribed.toString());
+    }
+
+    toggleSubscriptionStatus(): void {
+        const currentStatus = this.isSubscribedSubject.value;
+        this.setSubscriptionStatus(!currentStatus);
     }
 } 

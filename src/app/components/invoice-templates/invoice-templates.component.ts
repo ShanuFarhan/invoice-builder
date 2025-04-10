@@ -15,6 +15,7 @@ interface Template {
     description: string;
     layout: 'classic' | 'modern' | 'minimal' | 'creative' | 'real-estate' | 'business-pro' | 'blue-professional' | 'thank-you' | 'black-white';
     features: string[];
+    requiresSubscription?: boolean;
 }
 
 @Component({
@@ -58,7 +59,8 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
             color: '#34495e',
             description: 'Specialized template for real estate transactions with property details and summary tables',
             layout: 'real-estate',
-            features: ['Property details section', 'Agreement summaries', 'Payment breakdown', 'Professional real estate format']
+            features: ['Property details section', 'Agreement summaries', 'Payment breakdown', 'Professional real estate format'],
+            requiresSubscription: true
         },
         {
             id: 6,
@@ -67,7 +69,8 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
             color: '#1a237e',
             description: 'Professional template with navy blue header, orange accents, and structured layout',
             layout: 'blue-professional',
-            features: ['Diagonal design elements', 'Payment details section', 'Clean tabular format', 'Contact information footer']
+            features: ['Diagonal design elements', 'Payment details section', 'Clean tabular format', 'Contact information footer'],
+            requiresSubscription: true
         },
         {
             id: 5,
@@ -94,12 +97,14 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
             color: '#000000',
             description: 'Clean monochromatic design with bold black header and structured layout',
             layout: 'black-white',
-            features: ['Bold black header', 'Minimalist design', 'Clean tabular format', 'Professional business style']
+            features: ['Bold black header', 'Minimalist design', 'Clean tabular format', 'Professional business style'],
+            requiresSubscription: true
         }
     ];
 
     customTemplates: CustomTemplate[] = [];
     private subscriptions: Subscription = new Subscription();
+    isSubscribed: boolean = false;
 
     constructor(
         private router: Router,
@@ -111,6 +116,13 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         // Initial load of templates
         this.loadCustomTemplates();
+
+        // Subscribe to subscription status
+        this.subscriptions.add(
+            this.invoiceService.isSubscribed$.subscribe(status => {
+                this.isSubscribed = status;
+            })
+        );
 
         // Subscribe to router events to refresh templates when navigating to this page
         this.subscriptions.add(
@@ -137,6 +149,12 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
     }
 
     selectTemplate(template: Template): void {
+        // Check if template requires subscription
+        if (template.requiresSubscription && !this.isSubscribed) {
+            this.showSubscriptionPrompt();
+            return;
+        }
+
         // Route to the invoice creator with the selected template
         this.router.navigate(['/create'], {
             queryParams: {
@@ -240,5 +258,38 @@ export class InvoiceTemplatesComponent implements OnInit, OnDestroy {
         const bHex = b.toString(16).padStart(2, '0');
 
         return `#${rHex}${gHex}${bHex}`;
+    }
+
+    // Show subscription prompt dialog
+    showSubscriptionPrompt(): void {
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            width: '400px',
+            data: {
+                title: 'Premium Template',
+                message: 'This premium template requires a subscription. Would you like to upgrade your account?',
+                confirmButtonText: 'View Plans',
+                cancelButtonText: 'Not Now',
+                isDestructive: false
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                // For demo purposes, we'll just toggle the subscription status
+                this.invoiceService.toggleSubscriptionStatus();
+                this.snackBar.open('Subscription status toggled for demo purposes!', 'Close', {
+                    duration: 3000
+                });
+            }
+        });
+    }
+
+    // Add a method to toggle subscription (for testing)
+    toggleSubscription(): void {
+        this.invoiceService.toggleSubscriptionStatus();
+        const newStatus = this.invoiceService.getSubscriptionStatus();
+        this.snackBar.open(`Subscription status toggled to: ${newStatus ? 'Subscribed' : 'Unsubscribed'}`, 'Close', {
+            duration: 3000
+        });
     }
 } 
