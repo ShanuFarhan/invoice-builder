@@ -4,8 +4,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 // Firebase imports
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { Auth, getAuth } from 'firebase/auth';
 import { environment } from '../environments/environment';
 
 // Local modules
@@ -25,8 +25,8 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 
 // Initialize Firebase
-const app = initializeApp(environment.firebase);
-const auth = getAuth(app);
+const app: FirebaseApp = initializeApp(environment.firebase);
+const auth: Auth = getAuth(app);
 
 @NgModule({
   declarations: [
