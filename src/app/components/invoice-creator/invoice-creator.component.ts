@@ -1413,12 +1413,9 @@ export class InvoiceCreatorComponent implements OnInit, AfterViewInit, OnDestroy
         this.templateContent['col-rate'] = 'RATE';
         this.templateContent['col-amount'] = 'AMOUNT';
         this.templateContent['total-label'] = 'TOTAL DUE';
-        this.templateContent['payment-details'] = 'PAYMENT DETAILS';
-        this.templateContent['bank-info'] = 'Bank Name: [Bank Name]\nAccount Name: [Account Name]\nAccount Number: [Account Number]\nRouting Number: [Routing Number]';
-        this.templateContent['payment-link'] = 'Or pay online: [Payment Link]';
         this.templateContent['footer-text'] = 'Terms: Payment due within 30 days of receipt\nThank you for your business!';
 
-        // Add a payment details custom section
+        // Add a payment details custom section - this is better than using templateContent for more structured content
         this.customSections.push({
             id: 'section-' + Date.now(),
             title: 'PAYMENT DETAILS',
