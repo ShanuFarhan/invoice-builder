@@ -647,13 +647,86 @@ export class InvoiceCreatorComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     // Toggle edit mode for template customization
-    // Toggle edit mode for template customization
     toggleEditMode(): void {
         this.isEditMode = !this.isEditMode;
-        if (!this.isEditMode) {
+
+        if (this.isEditMode) {
+            // When entering edit mode, ensure proper initialization
+            this.snackBar.open('Edit mode enabled. Click on any text to edit it.', 'Got it', {
+                duration: 3000,
+                panelClass: ['info-snackbar']
+            });
+
+            // Force a refresh of the template content
+            setTimeout(() => {
+                // Apply contentEditable to all editable elements programmatically
+                this.applyContentEditableToElements();
+                // Make sure drag handles are visible
+                this.applyDragHandlesToElements();
+            }, 100);
+        } else {
             // Clean up when exiting edit mode
             this.currentEditingElement = null;
+
+            // Notify the user
+            this.snackBar.open('Edit mode disabled. Changes have been saved to the current session.', 'Close', {
+                duration: 3000,
+                panelClass: ['success-snackbar']
+            });
         }
+    }
+
+    // Apply contentEditable attribute to all editable elements programmatically
+    private applyContentEditableToElements(): void {
+        // Delay execution slightly to ensure template is rendered
+        setTimeout(() => {
+            const editableElements = document.querySelectorAll('.invoice-template [id]');
+            editableElements.forEach(element => {
+                if (element.id) {
+                    // Skip elements that shouldn't be editable (like containers)
+                    if (element.id.includes('container') ||
+                        element.id.includes('section') ||
+                        element.id === 'invoice-template') {
+                        return;
+                    }
+
+                    // Make element editable
+                    element.setAttribute('contenteditable', 'true');
+
+                    // Add click handler to properly trigger edit mode for the element
+                    element.addEventListener('click', (e) => {
+                        if (this.isEditMode) {
+                            e.preventDefault();
+                            this.editElement(element.id);
+                        }
+                    });
+
+                    // Add blur handler to save changes
+                    element.addEventListener('blur', () => {
+                        if (this.isEditMode) {
+                            this.updateContent(element.id);
+                        }
+                    });
+                }
+            });
+        }, 200);
+    }
+
+    // Make sure drag handles are visible and functional for all templates
+    private applyDragHandlesToElements(): void {
+        setTimeout(() => {
+            const dragElements = document.querySelectorAll('.invoice-template [cdkDrag]');
+            dragElements.forEach(element => {
+                // Enable drag on all elements with cdkDrag attribute
+                element.removeAttribute('cdkDragDisabled');
+
+                // Make sure drag handles are visible
+                const overlay = element.querySelector('.edit-overlay');
+                if (overlay) {
+                    (overlay as HTMLElement).style.display = 'flex';
+                }
+            });
+        }, 200);
     }
 
     // Subscription methods
@@ -703,7 +776,35 @@ export class InvoiceCreatorComponent implements OnInit, AfterViewInit, OnDestroy
     // Edit element content - can be triggered by click anywhere in the element
     editElement(elementId: string): void {
         this.currentEditingElement = elementId;
-        this.isEditMode = true;
+
+        // Find the element to edit
+        const element = document.getElementById(elementId);
+        if (element) {
+            // Make sure the element is editable
+            element.setAttribute('contenteditable', 'true');
+
+            // Set a visual indicator that this element is being edited
+            element.classList.add('currently-editing');
+
+            // Focus the element
+            element.focus();
+
+            // Try to place cursor at end of text
+            try {
+                // Create a range and set cursor at the end
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                range.collapse(false); // Collapse to end
+
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } catch (e) {
+                console.warn('Error focusing element:', e);
+            }
+        }
     }
 
     // Handle click on any editable element
@@ -718,7 +819,44 @@ export class InvoiceCreatorComponent implements OnInit, AfterViewInit, OnDestroy
     updateContent(elementId: string): void {
         const element = document.getElementById(elementId);
         if (element) {
+            // Store the content in the templateContent object by ID
             this.templateContent[elementId] = element.innerText;
+
+            // Remove the editing indicator class
+            element.classList.remove('currently-editing');
+
+            // Update form fields if this is a form-connected field
+            if (elementId.includes('business-name') || elementId.includes('company-name')) {
+                this.invoiceForm.patchValue({
+                    business: element.innerText
+                });
+            } else if (elementId.includes('client-name')) {
+                this.invoiceForm.patchValue({
+                    name: element.innerText
+                });
+            } else if (elementId.includes('client-address') || elementId.includes('address')) {
+                this.invoiceForm.patchValue({
+                    address: element.innerText
+                });
+            } else if (elementId.includes('client-phone') || elementId.includes('phone')) {
+                this.invoiceForm.patchValue({
+                    phone: element.innerText
+                });
+            } else if (elementId.includes('client-email') || elementId.includes('email')) {
+                this.invoiceForm.patchValue({
+                    email: element.innerText
+                });
+            } else if (elementId.includes('property-name')) {
+                this.invoiceForm.patchValue({
+                    propertyName: element.innerText
+                });
+            }
+
+            // If this was a total-related field, recalculate totals
+            if (elementId.includes('total') || elementId.includes('amount') ||
+                elementId.includes('rate') || elementId.includes('qty')) {
+                this.calculateInvoiceTotals();
+            }
         }
     }
 
@@ -1319,57 +1457,85 @@ export class InvoiceCreatorComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     loadTemplateLayout(): void {
-        console.log('Loading template layout for templateId:', this.templateId);
+        console.log('Loading template layout for ID:', this.templateId);
 
-        // Reset template content first
-        this.templateContent = {};
+        // Store current edit mode state
+        const wasInEditMode = this.isEditMode;
 
-        // Load the template based on the templateId
+        // If in edit mode, temporarily exit it
+        if (wasInEditMode) {
+            // We don't want to show notifications when just switching templates
+            const tempIsEditMode = this.isEditMode;
+            this.isEditMode = false;
+            this.currentEditingElement = null;
+        }
+
+        // Reset template content before loading new template
+        this.resetTemplateContent();
+
+        // Reset the customSections array
+        this.customSections = [];
+
+        // Load the selected template by template ID
         switch (this.templateId) {
             case 1:
                 this.loadClassicLayout();
+                this.layout = 'classic';
                 break;
             case 2:
                 this.loadModernLayout();
+                this.layout = 'modern';
                 break;
             case 3:
                 this.loadCreativeLayout();
+                this.layout = 'creative';
                 break;
             case 4:
                 this.loadRealEstateLayout();
+                this.layout = 'real-estate';
                 break;
             case 5:
-                // If using business-pro layout
                 this.loadBusinessProLayout();
+                this.layout = 'business-pro';
                 break;
             case 6:
-                // Our new Blue Professional layout
                 this.loadBlueProfessionalLayout();
+                this.layout = 'blue-professional';
                 break;
             case 7:
-                // Thank You invoice template
                 this.loadThankYouLayout();
+                this.layout = 'thank-you';
                 break;
             case 8:
-                // Black and White Modern Professional layout
                 this.loadBlackWhiteLayout();
+                this.layout = 'black-white';
                 break;
             default:
-                // Default to classic layout
+                // Default to classic layout if no match
                 this.loadClassicLayout();
+                this.layout = 'classic';
                 break;
         }
-
-        // Apply the layout class
-        this.applyLayoutClass();
 
         // Update the form with the layout value
         this.invoiceForm.patchValue({
             layout: this.layout
-        }, { emitEvent: false });
+        });
 
-        // Apply the template content to the DOM
+        // Apply template content to DOM
         this.applyTemplateContent();
+        this.applyLayoutClass();
+
+        // If was previously in edit mode, re-enter it after template loads
+        if (wasInEditMode) {
+            // Wait for template to render
+            setTimeout(() => {
+                this.isEditMode = true;
+                // Apply editable attributes and drag handles
+                this.applyContentEditableToElements();
+                this.applyDragHandlesToElements();
+            }, 200);
+        }
     }
 
     loadClassicLayout(): void {
