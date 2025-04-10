@@ -58,7 +58,7 @@ export class LoginComponent implements OnInit {
                 }
             } catch (error: any) {
                 console.error(this.isSignUp ? 'Sign up error:' : 'Login error:', error);
-                this.errorMessage = error.message || 'Authentication failed. Please try again.';
+                this.errorMessage = this.getReadableErrorMessage(error);
             } finally {
                 this.loading = false;
             }
@@ -71,9 +71,9 @@ export class LoginComponent implements OnInit {
             await this.authService.googleSignIn();
             console.log('Login component: Google SignIn successful, navigating to', this.returnUrl);
             this.router.navigate([this.returnUrl]);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Google sign-in error:', error);
-            this.errorMessage = 'Google sign-in failed. Please try again.';
+            this.errorMessage = this.getReadableErrorMessage(error);
         } finally {
             this.loading = false;
         }
@@ -82,5 +82,40 @@ export class LoginComponent implements OnInit {
     toggleSignUp() {
         this.isSignUp = !this.isSignUp;
         this.errorMessage = '';
+    }
+
+    private getReadableErrorMessage(error: any): string {
+        // Extract the error code if available
+        const errorCode = error.code || '';
+        const errorMessage = error.message || '';
+
+        // Map Firebase error codes to user-friendly messages
+        if (errorCode.includes('auth/invalid-credential') || errorCode.includes('auth/wrong-password')) {
+            return 'Invalid email or password. Please try again.';
+        }
+        if (errorCode.includes('auth/user-not-found')) {
+            return 'No account found with this email. Please sign up.';
+        }
+        if (errorCode.includes('auth/email-already-in-use')) {
+            return 'This email is already registered. Please sign in instead.';
+        }
+        if (errorCode.includes('auth/weak-password')) {
+            return 'Password is too weak. Please use a stronger password.';
+        }
+        if (errorCode.includes('auth/invalid-email')) {
+            return 'Please enter a valid email address.';
+        }
+        if (errorCode.includes('auth/network-request-failed')) {
+            return 'Network error. Please check your internet connection.';
+        }
+        if (errorCode.includes('auth/too-many-requests')) {
+            return 'Too many failed login attempts. Please try again later.';
+        }
+        if (errorCode.includes('auth/popup-closed-by-user')) {
+            return 'Sign-in popup was closed before completing. Please try again.';
+        }
+
+        // If we can't identify a specific error code, provide a generic message
+        return 'Authentication failed. Please try again.';
     }
 } 

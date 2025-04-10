@@ -11,7 +11,7 @@
 html, body {
   height: 100%;
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevent scrolling */
   font-family: 'Roboto', 'Segoe UI', sans-serif;
   background-color: #f8f9fa;
   color: #333;
@@ -52,4 +52,57 @@ body {
 .mat-card {
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Prevent overflow for all form fields */
+.mat-form-field {
+  width: 100%;
+}
+
+/* Media query for smaller screens */
+@media (max-height: 600px) {
+  .mat-form-field {
+    margin-bottom: 8px !important;
+  }
+  
+  .mat-form-field-wrapper {
+    padding-bottom: 0.8em !important;
+  }
+}
+
+/* Add these styles for snackbar notifications */
+.success-snackbar {
+  background-color: #4caf50;
+  color: white;
+  
+  .mat-simple-snackbar-action {
+    color: white;
+  }
+}
+
+.warning-snackbar {
+  background-color: #ff9800;
+  color: white;
+  
+  .mat-simple-snackbar-action {
+    color: white;
+  }
+}
+
+.error-snackbar {
+  background-color: #f44336;
+  color: white;
+  
+  .mat-simple-snackbar-action {
+    color: white;
+  }
+}
+
+.info-snackbar {
+  background-color: #2196f3;
+  color: white;
+  
+  .mat-simple-snackbar-action {
+    color: white;
+  }
 }

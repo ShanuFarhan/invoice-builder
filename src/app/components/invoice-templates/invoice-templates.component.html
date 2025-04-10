@@ -2,8 +2,17 @@
     <div class="header">
         <h1>Select an Invoice Template</h1>
         <p>Choose a template to customize your invoice</p>
+
+        <div class="header-actions">
+            <button mat-raised-button color="accent" (click)="createNewTemplate()">
+                <mat-icon>add</mat-icon>
+                Create Custom Template
+            </button>
+        </div>
     </div>
 
+    <!-- Standard Templates -->
+    <h2 class="section-title">Standard Templates</h2>
     <div class="templates-grid">
         <mat-card class="template-card" *ngFor="let template of templates" (click)="selectTemplate(template)">
             <mat-card-header [style.background-color]="template.color">
@@ -47,5 +56,80 @@
                 </button>
             </mat-card-actions>
         </mat-card>
+    </div>
+
+    <!-- Custom Templates -->
+    <ng-container *ngIf="customTemplates && customTemplates.length > 0">
+        <h2 class="section-title">Your Custom Templates</h2>
+        <div class="templates-grid">
+            <mat-card class="template-card custom-template-card" *ngFor="let template of customTemplates">
+                <mat-card-header [style.background-color]="template.headerColor">
+                    <mat-card-title>{{ template.name }}</mat-card-title>
+                    <mat-card-subtitle>{{ template.layout | titlecase }} Style</mat-card-subtitle>
+                </mat-card-header>
+
+                <!-- Template Preview -->
+                <div class="template-preview" [ngClass]="'preview-' + template.layout"
+                    [style.background-color]="template.backgroundColor">
+                    <div class="preview-header" [style.background-color]="template.headerColor"
+                        *ngIf="template.elementSettings?.header?.visible !== false">
+                        <div class="preview-title" [style.color]="getContrastColor(template.headerColor)">INVOICE</div>
+                    </div>
+                    <div class="preview-content">
+                        <div class="preview-row" [style.background-color]="lightenColor(template.backgroundColor, 5)"
+                            *ngIf="template.elementSettings?.companyInfo?.visible !== false">
+                        </div>
+                        <div class="preview-row" [style.background-color]="lightenColor(template.backgroundColor, 5)"
+                            *ngIf="template.elementSettings?.clientInfo?.visible !== false">
+                        </div>
+                        <div class="preview-table" *ngIf="template.elementSettings?.itemsTable?.visible !== false">
+                            <div class="preview-table-row"></div>
+                            <div class="preview-table-row"></div>
+                        </div>
+                        <div class="preview-footer" [style.color]="template.textColor"
+                            *ngIf="template.elementSettings?.footer?.visible !== false"></div>
+                    </div>
+                </div>
+
+                <mat-card-content>
+                    <p class="template-description">{{ template.description }}</p>
+                    <p class="template-date">Last modified: {{ template.lastModified | date:'mediumDate' }}</p>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-raised-button color="primary" (click)="selectCustomTemplate(template)">
+                        <mat-icon>edit</mat-icon>
+                        USE TEMPLATE
+                    </button>
+                    <button mat-icon-button [matMenuTriggerFor]="templateMenu" (click)="$event.stopPropagation()">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #templateMenu="matMenu">
+                        <button mat-menu-item (click)="editCustomTemplate(template); $event.stopPropagation()">
+                            <mat-icon>brush</mat-icon>
+                            <span>Edit Template</span>
+                        </button>
+                        <button mat-menu-item (click)="deleteTemplate(template.id, $event)">
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete Template</span>
+                        </button>
+                    </mat-menu>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+    </ng-container>
+
+    <!-- Empty Custom Templates State -->
+    <div class="empty-custom-templates" *ngIf="!customTemplates || customTemplates.length === 0">
+        <h2 class="section-title">Your Custom Templates</h2>
+        <div class="empty-state">
+            <mat-icon class="empty-icon">design_services</mat-icon>
+            <h3>No Custom Templates Yet</h3>
+            <p>Create your own unique invoice template to match your brand</p>
+            <button mat-raised-button color="accent" (click)="createNewTemplate()">
+                <mat-icon>add</mat-icon>
+                Create Your First Template
+            </button>
+        </div>
     </div>
 </div>

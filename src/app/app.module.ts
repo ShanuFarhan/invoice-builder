@@ -1,4 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { MatMenuModule } from '@angular/material/menu';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -13,6 +14,7 @@ import { HomeModule } from './components/home/home.module';
 import { InvoiceCreatorModule } from './components/invoice-creator/invoice-creator.module';
 import { InvoiceFormModule } from './components/invoice-form/invoice-form.module';
 import { InvoiceTemplatesModule } from './components/invoice-templates/invoice-templates.module';
+import { TemplateCreatorModule } from './components/template-creator/template-creator.module';
 import { SharedModule } from './shared/shared.module';
 
 // Services
@@ -39,7 +41,9 @@ const auth = getAuth(app);
     InvoiceFormModule,
     InvoiceCreatorModule,
     InvoiceTemplatesModule,
-    HomeModule
+    HomeModule,
+    TemplateCreatorModule,
+    MatMenuModule
   ],
   providers: [
     { provide: 'FIREBASE_APP', useValue: app },

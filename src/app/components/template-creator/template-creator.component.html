@@ -1,0 +1,312 @@
+<div class="template-creator-container">
+    <div class="creator-header">
+        <h1>{{ isEditMode ? 'Edit Template: ' + templateForm.get('name')?.value : 'Create Custom Template' }}</h1>
+        <p>Design your own invoice template with our easy-to-use editor</p>
+    </div>
+
+    <div class="creator-content">
+        <form [formGroup]="templateForm" class="template-form-container">
+            <!-- Template Info Section -->
+            <div class="form-section">
+                <h2>Template Information</h2>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Template Name</mat-label>
+                    <input matInput formControlName="name" placeholder="Enter template name">
+                    <mat-error *ngIf="templateForm.get('name')?.hasError('required')">
+                        Template name is required
+                    </mat-error>
+                    <mat-error *ngIf="templateForm.get('name')?.hasError('minlength')">
+                        Template name must be at least 3 characters
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Description</mat-label>
+                    <textarea matInput formControlName="description" rows="3"
+                        placeholder="Describe your template"></textarea>
+                    <mat-error *ngIf="templateForm.get('description')?.hasError('required')">
+                        Description is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Layout Selection -->
+            <div class="form-section">
+                <h2>Layout Style</h2>
+                <p>Choose a base layout to customize</p>
+
+                <div class="layout-options">
+                    <mat-button-toggle-group formControlName="layout">
+                        <mat-button-toggle *ngFor="let layout of availableLayouts" [value]="layout.value"
+                            (click)="onLayoutChange(layout.value)">
+                            <div class="layout-option">
+                                <div class="layout-preview" [ngClass]="'preview-' + layout.value"></div>
+                                <span>{{ layout.label }}</span>
+                            </div>
+                        </mat-button-toggle>
+                    </mat-button-toggle-group>
+                </div>
+            </div>
+
+            <!-- Color Scheme -->
+            <div class="form-section">
+                <h2>Color Scheme</h2>
+                <p>Customize the colors of your template</p>
+
+                <div class="color-picker-container">
+                    <div class="color-pickers">
+                        <div class="color-picker-item">
+                            <label>Header Color</label>
+                            <input type="color" formControlName="headerColor"
+                                (change)="onColorChange('header', $event.target.value)">
+                        </div>
+
+                        <div class="color-picker-item">
+                            <label>Background Color</label>
+                            <input type="color" formControlName="backgroundColor"
+                                (change)="onColorChange('background', $event.target.value)">
+                        </div>
+
+                        <div class="color-picker-item">
+                            <label>Text Color</label>
+                            <input type="color" formControlName="textColor"
+                                (change)="onColorChange('text', $event.target.value)">
+                        </div>
+
+                        <div class="color-picker-item">
+                            <label>Accent Color</label>
+                            <input type="color" formControlName="accentColor"
+                                (change)="onColorChange('accent', $event.target.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Font Selection -->
+            <div class="form-section">
+                <h2>Typography</h2>
+                <p>Choose a font family for your template</p>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Font Family</mat-label>
+                    <mat-select formControlName="fontFamily">
+                        <mat-option *ngFor="let font of availableFonts" [value]="font.value"
+                            [style.font-family]="font.value">
+                            {{ font.label }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <!-- Element Customization -->
+            <div class="form-section">
+                <h2>Element Settings</h2>
+                <p>Customize which elements appear and how they're displayed</p>
+
+                <div class="element-settings">
+                    <!-- Header Settings -->
+                    <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>Header</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-slide-toggle [checked]="elementSettings.header.visible"
+                            (change)="toggleElementVisibility('header', $event.checked)">
+                            Show Header
+                        </mat-slide-toggle>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Position</mat-label>
+                            <mat-select [(value)]="elementSettings.header.position">
+                                <mat-option value="top">Top</mat-option>
+                                <mat-option value="inline">Inline</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </mat-expansion-panel>
+
+                    <!-- Logo Settings -->
+                    <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>Logo</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-slide-toggle [checked]="elementSettings.logo.visible"
+                            (change)="toggleElementVisibility('logo', $event.checked)">
+                            Show Logo
+                        </mat-slide-toggle>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Size</mat-label>
+                            <mat-select [(value)]="elementSettings.logo.size"
+                                (selectionChange)="setLogoSize($event.value)">
+                                <mat-option value="small">Small</mat-option>
+                                <mat-option value="medium">Medium</mat-option>
+                                <mat-option value="large">Large</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </mat-expansion-panel>
+
+                    <!-- Company Info Settings -->
+                    <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>Company Information</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-slide-toggle [checked]="elementSettings.companyInfo.visible"
+                            (change)="toggleElementVisibility('companyInfo', $event.checked)">
+                            Show Company Information
+                        </mat-slide-toggle>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Alignment</mat-label>
+                            <mat-select [(value)]="elementSettings.companyInfo.alignment"
+                                (selectionChange)="setElementAlignment('companyInfo', $event.value)">
+                                <mat-option value="left">Left</mat-option>
+                                <mat-option value="center">Center</mat-option>
+                                <mat-option value="right">Right</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </mat-expansion-panel>
+
+                    <!-- Client Info Settings -->
+                    <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>Client Information</mat-panel-title>
+                        </mat-expansion-panel-header>
+
+                        <mat-slide-toggle [checked]="elementSettings.clientInfo.visible"
+                            (change)="toggleElementVisibility('clientInfo', $event.checked)">
+                            Show Client Information
+                        </mat-slide-toggle>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Alignment</mat-label>
+                            <mat-select [(value)]="elementSettings.clientInfo.alignment"
+                                (selectionChange)="setElementAlignment('clientInfo', $event.value)">
+                                <mat-option value="left">Left</mat-option>
+                                <mat-option value="center">Center</mat-option>
+                                <mat-option value="right">Right</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </mat-expansion-panel>
+
+                    <!-- More element settings would go here -->
+                </div>
+            </div>
+        </form>
+
+        <!-- Preview Section -->
+        <div class="template-preview-container" [ngClass]="{'mobile-preview': previewMode === 'mobile'}">
+            <div class="preview-controls">
+                <h2>Preview</h2>
+                <button mat-button (click)="togglePreviewMode()">
+                    <mat-icon>{{ previewMode === 'desktop' ? 'phone_android' : 'desktop_windows' }}</mat-icon>
+                    {{ previewMode === 'desktop' ? 'Mobile View' : 'Desktop View' }}
+                </button>
+            </div>
+
+            <div class="template-preview" #templatePreview [ngClass]="'preview-' + templateForm.get('layout')?.value">
+                <!-- Header -->
+                <div class="preview-header" *ngIf="elementSettings.header.visible">
+                    <div class="preview-title preview-text">INVOICE</div>
+                </div>
+
+                <!-- Logo -->
+                <div class="preview-logo" *ngIf="elementSettings.logo.visible"
+                    [ngClass]="'logo-size-' + elementSettings.logo.size">
+                    <img src="assets/images/placeholder-logo.svg" alt="Company Logo">
+                </div>
+
+                <!-- Info Section -->
+                <div class="preview-info-section">
+                    <!-- Company Info -->
+                    <div class="preview-company-info" *ngIf="elementSettings.companyInfo.visible"
+                        [ngClass]="'align-' + elementSettings.companyInfo.alignment">
+                        <h3 class="preview-text">Your Company Name</h3>
+                        <p class="preview-text">123 Business Street</p>
+                        <p class="preview-text">Business City, ST 12345</p>
+                        <p class="preview-text">email&#64;example.com</p>
+                    </div>
+
+                    <!-- Client Info -->
+                    <div class="preview-client-info" *ngIf="elementSettings.clientInfo.visible"
+                        [ngClass]="'align-' + elementSettings.clientInfo.alignment">
+                        <h4 class="preview-text">BILL TO</h4>
+                        <p class="preview-text">Client Name</p>
+                        <p class="preview-text">Client Address</p>
+                        <p class="preview-text">client&#64;example.com</p>
+                    </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="preview-invoice-details" *ngIf="elementSettings.invoiceDetails.visible">
+                    <p class="preview-text">Invoice #: INV-12345</p>
+                    <p class="preview-text">Date: 05/15/2023</p>
+                    <p class="preview-text">Due Date: 06/15/2023</p>
+                </div>
+
+                <!-- Items Table -->
+                <div class="preview-items-table" *ngIf="elementSettings.itemsTable.visible">
+                    <div class="preview-table-header">
+                        <div class="preview-cell preview-text">DESCRIPTION</div>
+                        <div class="preview-cell preview-text">QTY</div>
+                        <div class="preview-cell preview-text">PRICE</div>
+                        <div class="preview-cell preview-text">AMOUNT</div>
+                    </div>
+
+                    <div class="preview-table-row">
+                        <div class="preview-cell preview-text">Sample Item 1</div>
+                        <div class="preview-cell preview-text">2</div>
+                        <div class="preview-cell preview-text">₹100.00</div>
+                        <div class="preview-cell preview-text">₹200.00</div>
+                    </div>
+
+                    <div class="preview-table-row">
+                        <div class="preview-cell preview-text">Sample Item 2</div>
+                        <div class="preview-cell preview-text">1</div>
+                        <div class="preview-cell preview-text">₹150.00</div>
+                        <div class="preview-cell preview-text">₹150.00</div>
+                    </div>
+                </div>
+
+                <!-- Total Section -->
+                <div class="preview-total-section" *ngIf="elementSettings.totalSection.visible"
+                    [ngClass]="'align-' + elementSettings.totalSection.alignment">
+                    <div class="preview-total-row">
+                        <div class="preview-total-label preview-text">SUBTOTAL</div>
+                        <div class="preview-total-amount preview-text">₹350.00</div>
+                    </div>
+
+                    <div class="preview-total-row">
+                        <div class="preview-total-label preview-text">TAX (10%)</div>
+                        <div class="preview-total-amount preview-text">₹35.00</div>
+                    </div>
+
+                    <div class="preview-total-row preview-grand-total">
+                        <div class="preview-total-label preview-text">TOTAL</div>
+                        <div class="preview-total-amount preview-text">₹385.00</div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="preview-notes" *ngIf="elementSettings.notes.visible">
+                    <h4 class="preview-text">Notes</h4>
+                    <p class="preview-text">Thank you for your business! Payment is due within 30 days.</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="preview-footer" *ngIf="elementSettings.footer.visible">
+                    <p class="preview-text">{{ elementSettings.footer.content }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button mat-button (click)="cancelEdit()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveTemplate()" [disabled]="templateForm.invalid">
+            {{ isEditMode ? 'Update' : 'Save' }} Template
+        </button>
+    </div>
+</div>

@@ -130,7 +130,8 @@ export class InvoiceFormComponent implements OnInit {
                 })),
                 total: this.calculateTotal(),
                 date: new Date(),
-                invoiceNumber: this.invoiceService.generateInvoiceNumber()
+                invoiceNumber: this.invoiceService.generateInvoiceNumber(),
+                notes: ''
             };
 
             // Save invoice to service

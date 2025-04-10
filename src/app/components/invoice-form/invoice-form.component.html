@@ -131,7 +131,7 @@
 
             <div class="total-row">
                 <span class="total-label">Total:</span>
-                <span class="total-amount">{{ calculateTotal() | currency }}</span>
+                <span class="total-amount">{{ calculateTotal() | currency:'INR':'symbol':'1.2-2' }}</span>
             </div>
         </div>
 

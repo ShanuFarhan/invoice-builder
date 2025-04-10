@@ -21,6 +21,8 @@
         </button>
     </div>
 
+
+
     <!-- New Simple Color Picker -->
     <div class="simple-color-pickers" *ngIf="isEditMode">
         <mat-card>
@@ -68,13 +70,13 @@
         </mat-card>
     </div>
 
+    <!-- Edit mode instructions -->
     <div class="edit-mode-instructions" *ngIf="isEditMode">
         <mat-card>
             <mat-card-content>
                 <p>
                     <mat-icon>edit</mat-icon> Click on text to edit content.
-                    <span *ngIf="templateId === 3"><mat-icon>drag_indicator</mat-icon> Drag elements to
-                        reposition.</span>
+                    <mat-icon>drag_indicator</mat-icon> Drag elements to reposition them anywhere on the invoice.
                 </p>
             </mat-card-content>
         </mat-card>
@@ -82,207 +84,844 @@
 
     <!-- Classic Layout Invoice -->
     <div class="invoice-template" id="invoice-template" [ngStyle]="{'background-image': getBackgroundStyle()}"
-        [ngClass]="{'edit-mode': isEditMode, 'classic-layout': layout === 'classic', 'modern-layout': layout === 'modern', 'creative-layout': layout === 'creative'}">
+        [ngClass]="{
+            'edit-mode': isEditMode,
+            'classic-layout': layout === 'classic',
+            'modern-layout': layout === 'modern',
+            'creative-layout': layout === 'creative',
+            'minimal-layout': layout === 'minimal',
+            'real-estate-layout': layout === 'real-estate',
+            'layout-classic': layout === 'classic',
+            'layout-modern': layout === 'modern',
+            'layout-creative': layout === 'creative',
+            'layout-minimal': layout === 'minimal',
+            'layout-real-estate': layout === 'real-estate',
+            'text-colored': true
+        }">
 
-        <!-- Header Section -->
-        <div class="invoice-header" [ngStyle]="getHeaderStyle()" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
-            (cdkDragEnded)="onDragEnded($event, 'invoice-header')">
-            <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')"
-                (click)="handleElementClick($event, 'header-title')">INVOICE</h1>
-            <div class="edit-overlay" *ngIf="isEditMode">
-                <mat-icon>drag_indicator</mat-icon>
-            </div>
-        </div>
+        <!-- Diagnostic Information (Remove after debugging) -->
 
-        <!-- Invoice Info Section -->
-        <div class="invoice-info"
-            [ngClass]="{'modern-info': layout === 'modern', 'creative-info': layout === 'creative'}">
-            <!-- Company Info -->
-            <div class="company-info" cdkDragBoundary=".invoice-template" cdkDrag
-                [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
-                (cdkDragEnded)="onDragEnded($event, 'company-info')">
-                <h2 [contentEditable]="isEditMode" [id]="'company-name'" (blur)="updateContent('company-name')"
-                    (click)="handleElementClick($event, 'company-name')">
-                    {{ invoiceForm.get('business')?.value || 'Your Business Name' }}
-                </h2>
-                <p [contentEditable]="isEditMode" [id]="'company-person'" (blur)="updateContent('company-person')"
-                    (click)="handleElementClick($event, 'company-person')">
-                    {{ layout === 'modern' ? 'FROM' : (layout === 'creative' ? 'HELLO,' : invoiceForm.get('name')?.value
-                    || 'Your Name') }}
-                </p>
-                <p [contentEditable]="isEditMode" [id]="'company-email'" (blur)="updateContent('company-email')"
-                    (click)="handleElementClick($event, 'company-email')">
-                    {{ invoiceForm.get('email')?.value || 'your.email@example.com' }}
-                </p>
-                <p [contentEditable]="isEditMode" [id]="'company-phone'" (blur)="updateContent('company-phone')"
-                    (click)="handleElementClick($event, 'company-phone')">
-                    {{ invoiceForm.get('phone')?.value || '123-456-7890' }}
-                </p>
-                <p [contentEditable]="isEditMode" [id]="'company-address'" (blur)="updateContent('company-address')"
-                    (click)="handleElementClick($event, 'company-address')">
-                    {{ invoiceForm.get('address')?.value || '123 Business St, City, State' }}
-                </p>
+
+        <!-- AI Tools Invoice Template - Shown when templateId is 5 -->
+        <div *ngIf="templateId === 5" class="ai-tools-template" style="display: block;">
+            <!-- Header with Logo and Invoice Title -->
+            <div class="invoice-header" [ngStyle]="getHeaderStyle()" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'invoice-header')"
+                [style.transform]="getTransform('invoice-header')">
+                <div class="logo-section">
+                    <div class="logo" data-element="logo"
+                        [ngClass]="{'force-hide': elementSettings?.logo?.visible === false}">
+                        <img src="assets/images/ai-tools-logo.svg" alt="AI Tools Logo">
+                    </div>
+                    <h1 [contentEditable]="isEditMode" [id]="'ai-header-title'"
+                        (blur)="updateContent('ai-header-title')"
+                        (click)="handleElementClick($event, 'ai-header-title')">Invoice</h1>
+                </div>
                 <div class="edit-overlay" *ngIf="isEditMode">
                     <mat-icon>drag_indicator</mat-icon>
                 </div>
             </div>
 
-            <!-- Client Info -->
-            <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag
-                [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
-                (cdkDragEnded)="onDragEnded($event, 'client-info')">
-                <h3 [contentEditable]="isEditMode" [id]="'property-title'" (blur)="updateContent('property-title')"
-                    (click)="handleElementClick($event, 'property-title')">
-                    {{ layout === 'modern' ? 'TO' : (layout === 'creative' ? 'PROJECT FOR' : 'Bill To') }}: {{
-                    invoiceForm.get('propertyName')?.value || 'Client Name' }}
-                </h3>
+            <!-- Two-column invoice info section -->
+            <div class="invoice-info-container" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'ai-invoice-info-container')"
+                [style.transform]="getTransform('ai-invoice-info-container')">
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+                <!-- Left column: Seller info -->
+                <div class="seller-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                    (cdkDragEnded)="onDragEnded($event, 'ai-seller-info')"
+                    [style.transform]="getTransform('ai-seller-info')">
+                    <div class="info-group">
+                        <div [contentEditable]="isEditMode" [id]="'invoice-number-label'"
+                            (blur)="updateContent('invoice-number-label')"
+                            (click)="handleElementClick($event, 'invoice-number-label')">Invoice #</div>
+                        <div [contentEditable]="isEditMode" [id]="'invoice-number-value'"
+                            (blur)="updateContent('invoice-number-value')"
+                            (click)="handleElementClick($event, 'invoice-number-value')">
+                            {{invoiceForm.get('invoiceNumber')?.value || 'INV-00001'}}</div>
+                    </div>
+                    <div class="info-group">
+                        <div [contentEditable]="isEditMode" [id]="'invoice-date-label'"
+                            (blur)="updateContent('invoice-date-label')"
+                            (click)="handleElementClick($event, 'invoice-date-label')">Invoice Date</div>
+                        <div [contentEditable]="isEditMode" [id]="'invoice-date-value'"
+                            (blur)="updateContent('invoice-date-value')"
+                            (click)="handleElementClick($event, 'invoice-date-value')">
+                            {{(invoiceForm.get('date')?.value | date:'MMM dd, yyyy') || 'Aug 24, 2024'}}</div>
+                    </div>
+                    <div class="info-group">
+                        <div [contentEditable]="isEditMode" [id]="'due-date-label'"
+                            (blur)="updateContent('due-date-label')"
+                            (click)="handleElementClick($event, 'due-date-label')">Due Date</div>
+                        <div [contentEditable]="isEditMode" [id]="'due-date-value'"
+                            (blur)="updateContent('due-date-value')"
+                            (click)="handleElementClick($event, 'due-date-value')">Sep 08, 2024</div>
+                    </div>
+                    <div class="address-block">
+                        <p [contentEditable]="isEditMode" [id]="'company-address-line1'"
+                            (blur)="updateContent('company-address-line1')"
+                            (click)="handleElementClick($event, 'company-address-line1')">
+                            301/302, 3rd Floor, Instaoffice, Saket</p>
+                        <p [contentEditable]="isEditMode" [id]="'company-address-line2'"
+                            (blur)="updateContent('company-address-line2')"
+                            (click)="handleElementClick($event, 'company-address-line2')">
+                            Callipolis, Sarjapur Rd,</p>
+                        <p [contentEditable]="isEditMode" [id]="'company-address-line3'"
+                            (blur)="updateContent('company-address-line3')"
+                            (click)="handleElementClick($event, 'company-address-line3')">
+                            Doddakannelli, Bengaluru,</p>
+                        <p [contentEditable]="isEditMode" [id]="'company-address-line4'"
+                            (blur)="updateContent('company-address-line4')"
+                            (click)="handleElementClick($event, 'company-address-line4')">
+                            Karnataka, India - 560035</p>
+                    </div>
+                    <div class="tax-info">
+                        <div [contentEditable]="isEditMode" [id]="'company-gstin'"
+                            (blur)="updateContent('company-gstin')"
+                            (click)="handleElementClick($event, 'company-gstin')">
+                            GSTIN: 20AAJCR7259L1ZI</div>
+                        <div [contentEditable]="isEditMode" [id]="'company-pan'" (blur)="updateContent('company-pan')"
+                            (click)="handleElementClick($event, 'company-pan')">
+                            PAN: AAJCR7259L</div>
+                        <div [contentEditable]="isEditMode" [id]="'company-email'"
+                            (blur)="updateContent('company-email')"
+                            (click)="handleElementClick($event, 'company-email')">
+                            Email: care&#64;refrens.com</div>
+                        <div [contentEditable]="isEditMode" [id]="'company-phone'"
+                            (blur)="updateContent('company-phone')"
+                            (click)="handleElementClick($event, 'company-phone')">
+                            Phone: +91 91910 40430</div>
+                    </div>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+
+                <!-- Right column: Client info -->
+                <div class="client-info" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                    (cdkDragEnded)="onDragEnded($event, 'ai-client-info')"
+                    [style.transform]="getTransform('ai-client-info')">
+                    <h3 [contentEditable]="isEditMode" [id]="'billed-to-title'"
+                        (blur)="updateContent('billed-to-title')"
+                        (click)="handleElementClick($event, 'billed-to-title')">Billed To</h3>
+                    <div class="client-name" [contentEditable]="isEditMode" [id]="'ai-client-name'"
+                        (blur)="updateContent('ai-client-name')" (click)="handleElementClick($event, 'ai-client-name')">
+                        {{invoiceForm.get('name')?.value || 'ABC XYZ Business'}}
+                    </div>
+                    <div class="client-address">
+                        <p [contentEditable]="isEditMode" [id]="'ai-client-address'"
+                            (blur)="updateContent('ai-client-address')"
+                            (click)="handleElementClick($event, 'ai-client-address')">
+                            {{invoiceForm.get('address')?.value || 'Ikigai Coworking space by Spaceplexx 5th Floor,
+                            Magnus shopping mall, Surat, Gujarat, India - 395017'}}
+                        </p>
+                    </div>
+                    <div class="client-phone">
+                        <p [contentEditable]="isEditMode" [id]="'ai-client-phone'"
+                            (blur)="updateContent('ai-client-phone')"
+                            (click)="handleElementClick($event, 'ai-client-phone')">
+                            Phone: {{invoiceForm.get('phone')?.value || '+91 91910 40430'}}
+                        </p>
+                    </div>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items table -->
+            <div class="items-table-container" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'ai-items-table')"
+                [style.transform]="getTransform('ai-items-table')">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-item'"
+                                (blur)="updateContent('ai-col-item')"
+                                (click)="handleElementClick($event, 'ai-col-item')">Item</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-hsn'" (blur)="updateContent('ai-col-hsn')"
+                                (click)="handleElementClick($event, 'ai-col-hsn')">HSN/SAC</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-gst'" (blur)="updateContent('ai-col-gst')"
+                                (click)="handleElementClick($event, 'ai-col-gst')">GST Rate</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-qty'" (blur)="updateContent('ai-col-qty')"
+                                (click)="handleElementClick($event, 'ai-col-qty')">Quantity</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-rate'"
+                                (blur)="updateContent('ai-col-rate')"
+                                (click)="handleElementClick($event, 'ai-col-rate')">Rate</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-amount'"
+                                (blur)="updateContent('ai-col-amount')"
+                                (click)="handleElementClick($event, 'ai-col-amount')">Amount</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-igst'"
+                                (blur)="updateContent('ai-col-igst')"
+                                (click)="handleElementClick($event, 'ai-col-igst')">IGST</th>
+                            <th [contentEditable]="isEditMode" [id]="'ai-col-total'"
+                                (blur)="updateContent('ai-col-total')"
+                                (click)="handleElementClick($event, 'ai-col-total')">Total</th>
+                            <th *ngIf="isEditMode" class="action-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of getItems().controls; let i = index">
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-desc-' + i"
+                                (blur)="updateItemContent($event, i, 'description')"
+                                (click)="handleElementClick($event, 'ai-item-desc-' + i)">
+                                {{item.get('description')?.value || 'Refrens Website Development'}}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-hsn-' + i"
+                                (blur)="updateContent('ai-item-hsn-' + i)"
+                                (click)="handleElementClick($event, 'ai-item-hsn-' + i)">156324</td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-gst-' + i"
+                                (blur)="updateContent('ai-item-gst-' + i)"
+                                (click)="handleElementClick($event, 'ai-item-gst-' + i)">18%</td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-qty-' + i"
+                                (blur)="updateItemContent($event, i, 'quantity'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'ai-item-qty-' + i)">
+                                {{item.get('quantity')?.value || 1}}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-rate-' + i"
+                                (blur)="updateItemContent($event, i, 'rate'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'ai-item-rate-' + i)">
+                                ₹{{item.get('rate')?.value | number:'1.2-2' || '50,000.00'}}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-amount-' + i"
+                                (blur)="updateContent('ai-item-amount-' + i)"
+                                (click)="handleElementClick($event, 'ai-item-amount-' + i)">
+                                ₹{{(item.get('quantity')?.value * item.get('rate')?.value) | number:'1.2-2' ||
+                                '50,000.00'}}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-igst-' + i"
+                                (blur)="updateContent('ai-item-igst-' + i)"
+                                (click)="handleElementClick($event, 'ai-item-igst-' + i)">
+                                ₹{{(item.get('quantity')?.value * item.get('rate')?.value * 0.18) | number:'1.2-2' ||
+                                '9,000.00'}}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'ai-item-total-' + i"
+                                (blur)="updateContent('ai-item-total-' + i)"
+                                (click)="handleElementClick($event, 'ai-item-total-' + i)">
+                                ₹{{(item.get('quantity')?.value * item.get('rate')?.value * 1.18) | number:'1.2-2' ||
+                                '59,000.00'}}
+                            </td>
+                            <td *ngIf="isEditMode" class="action-column">
+                                <button mat-icon-button color="warn" (click)="removeItem(i)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Totals section -->
+            <div class="totals-section" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'ai-totals-section')"
+                [style.transform]="getTransform('ai-totals-section')">
+                <div class="totals-table">
+                    <div class="total-row">
+                        <div class="total-label" [contentEditable]="isEditMode" [id]="'ai-amount-label'"
+                            (blur)="updateContent('ai-amount-label')"
+                            (click)="handleElementClick($event, 'ai-amount-label')">Amount</div>
+                        <div class="total-value" [contentEditable]="isEditMode" [id]="'ai-amount-value'"
+                            (blur)="updateContent('ai-amount-value')"
+                            (click)="handleElementClick($event, 'ai-amount-value')">
+                            ₹{{calculateTotal() | number:'1.2-2'}}</div>
+                    </div>
+                    <div class="total-row">
+                        <div class="total-label" [contentEditable]="isEditMode" [id]="'ai-igst-label'"
+                            (blur)="updateContent('ai-igst-label')"
+                            (click)="handleElementClick($event, 'ai-igst-label')">IGST</div>
+                        <div class="total-value" [contentEditable]="isEditMode" [id]="'ai-igst-value'"
+                            (blur)="updateContent('ai-igst-value')"
+                            (click)="handleElementClick($event, 'ai-igst-value')">
+                            ₹{{calculateTotal() * 0.18 | number:'1.2-2'}}</div>
+                    </div>
+                    <div class="total-row grand-total">
+                        <div class="total-label" [contentEditable]="isEditMode" [id]="'ai-total-label'"
+                            (blur)="updateContent('ai-total-label')"
+                            (click)="handleElementClick($event, 'ai-total-label')">Total (INR)</div>
+                        <div class="total-value" [contentEditable]="isEditMode" [id]="'ai-total-value'"
+                            (blur)="updateContent('ai-total-value')"
+                            (click)="handleElementClick($event, 'ai-total-value')">
+                            ₹{{calculateTotal() * 1.18 | number:'1.2-2'}}</div>
+                    </div>
+                </div>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Signature and Terms section -->
+            <div class="footer-section" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'ai-footer-section')"
+                [style.transform]="getTransform('ai-footer-section')">
+                <div class="signature-section">
+                    <div class="signature-image">
+                        <img src="assets/images/signature.png" alt="Signature">
+                    </div>
+                    <div class="signature-label" [contentEditable]="isEditMode" [id]="'ai-signature-label'"
+                        (blur)="updateContent('ai-signature-label')"
+                        (click)="handleElementClick($event, 'ai-signature-label')">Authorised Signatory</div>
+                </div>
+                <div class="terms-section">
+                    <h4 [contentEditable]="isEditMode" [id]="'ai-terms-title'" (blur)="updateContent('ai-terms-title')"
+                        (click)="handleElementClick($event, 'ai-terms-title')">Terms and Conditions</h4>
+                    <ol>
+                        <li [contentEditable]="isEditMode" [id]="'ai-terms-1'" (blur)="updateContent('ai-terms-1')"
+                            (click)="handleElementClick($event, 'ai-terms-1')">
+                            Please pay within 15 days from the date of invoice, overdue interest &#64; 14% will be
+                            charged on delayed payments.</li>
+                        <li [contentEditable]="isEditMode" [id]="'ai-terms-2'" (blur)="updateContent('ai-terms-2')"
+                            (click)="handleElementClick($event, 'ai-terms-2')">
+                            Please quote invoice number when remitting funds.</li>
+                    </ol>
+                </div>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real Estate Template - Shown only when layout is real-estate -->
+        <div *ngIf="templateId === 4" class="real-estate-template" style="display: block;">
+            <!-- Header with Logo and Invoice Title -->
+            <div class="invoice-header" [ngStyle]="getHeaderStyle()" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'invoice-header')"
+                [style.transform]="getTransform('invoice-header')">
+                <div class="logo" data-element="logo"
+                    [ngClass]="{'force-hide': elementSettings?.logo?.visible === false}">
+                    <img src="assets/images/real-estate-logo.svg" alt="Real Estate Logo">
+                </div>
+                <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')"
+                    (click)="handleElementClick($event, 'header-title')">
+                    {{templateContent['header-title'] || 'INVOICE'}}
+                </h1>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="invoice-details" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'invoice-details')"
+                [style.transform]="getTransform('invoice-details')">
                 <p [contentEditable]="isEditMode" [id]="'invoice-number'" (blur)="updateContent('invoice-number')"
                     (click)="handleElementClick($event, 'invoice-number')">
-                    <strong>{{ layout === 'modern' ? '#INV-' : 'Invoice #:' }}</strong> {{ invoiceNumber }}
+                    {{templateContent['invoice-number'] || 'Invoice Number: ' + (invoiceForm.get('invoiceNumber')?.value
+                    || '846')}}
                 </p>
                 <p [contentEditable]="isEditMode" [id]="'invoice-date'" (blur)="updateContent('invoice-date')"
                     (click)="handleElementClick($event, 'invoice-date')">
-                    <strong>{{ layout === 'modern' ? 'Issued: ' : 'Date:' }}</strong> {{ today | date:'mediumDate' }}
+                    {{templateContent['invoice-date'] || 'Date: ' + (invoiceForm.get('date')?.value | date:'MM/dd/yyyy'
+                    || '02/02/2022')}}
                 </p>
-                <p *ngIf="layout !== 'creative'" [contentEditable]="isEditMode" [id]="'due-date'"
-                    (blur)="updateContent('due-date')" (click)="handleElementClick($event, 'due-date')">
-                    <strong>{{ layout === 'modern' ? 'Due: ' : 'Due Date:' }}</strong> {{ today | date:'mediumDate' }}
-                </p>
-                <div *ngIf="layout === 'modern'" [contentEditable]="isEditMode" [id]="'project-title'"
-                    (blur)="updateContent('project-title')" (click)="handleElementClick($event, 'project-title')"
-                    class="project-title">
-                    PROJECT: Client Project
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
                 </div>
+            </div>
+
+            <!-- Billing Information -->
+            <div class="invoice-info">
+                <!-- Bill From -->
+                <div class="invoice-companyInfo"
+                    [style.display]="elementSettings?.companyInfo?.visible !== false ? '' : 'none'"
+                    [ngClass]="{'force-hide': elementSettings?.companyInfo?.visible === false}"
+                    data-element="companyInfo" cdkDragBoundary=".invoice-template" cdkDrag
+                    [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'company-info')"
+                    [style.transform]="getTransform('company-info')">
+                    <h3 [contentEditable]="isEditMode" [id]="'bill-from-title'"
+                        (blur)="updateContent('bill-from-title')"
+                        (click)="handleElementClick($event, 'bill-from-title')">Bill from:</h3>
+                    <p [contentEditable]="isEditMode" [id]="'company-name'" (blur)="updateContent('company-name')"
+                        (click)="handleElementClick($event, 'company-name')">
+                        {{templateContent['company-name'] || (invoiceForm.get('business')?.value || 'Company Name')}}
+                    </p>
+                    <p [contentEditable]="isEditMode" [id]="'company-address'" (blur)="updateContent('company-address')"
+                        (click)="handleElementClick($event, 'company-address')">
+                        {{templateContent['company-address'] || (invoiceForm.get('address')?.value || 'Street Address,
+                        Zip Code')}}
+                    </p>
+                    <p [contentEditable]="isEditMode" [id]="'company-phone'" (blur)="updateContent('company-phone')"
+                        (click)="handleElementClick($event, 'company-phone')">
+                        {{templateContent['company-phone'] || (invoiceForm.get('phone')?.value || 'Phone Number')}}
+                    </p>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+
+                <!-- Bill To -->
+                <div class="invoice-clientInfo"
+                    [style.display]="elementSettings?.clientInfo?.visible !== false ? '' : 'none'"
+                    [ngClass]="{'force-hide': elementSettings?.clientInfo?.visible === false}" data-element="clientInfo"
+                    cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                    (cdkDragEnded)="onDragEnded($event, 'client-info')" [style.transform]="getTransform('client-info')">
+                    <h3 [contentEditable]="isEditMode" [id]="'bill-to-title'" (blur)="updateContent('bill-to-title')"
+                        (click)="handleElementClick($event, 'bill-to-title')">
+                        {{templateContent['property-title'] || 'Bill to:'}}
+                    </h3>
+                    <p [contentEditable]="isEditMode" [id]="'client-name'" (blur)="updateContent('client-name')"
+                        (click)="handleElementClick($event, 'client-name')">
+                        {{invoiceForm.get('name')?.value || 'Customer Name'}}
+                    </p>
+                    <p [contentEditable]="isEditMode" [id]="'client-address'" (blur)="updateContent('client-address')"
+                        (click)="handleElementClick($event, 'client-address')">
+                        {{invoiceForm.get('address')?.value || 'Street Address, Zip Code'}}
+                    </p>
+                    <p [contentEditable]="isEditMode" [id]="'client-phone'" (blur)="updateContent('client-phone')"
+                        (click)="handleElementClick($event, 'client-phone')">
+                        {{invoiceForm.get('phone')?.value || 'Phone Number'}}
+                    </p>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table (Regular Invoiceable Items) -->
+            <div *ngIf="templateId !== 4 && templateId !== 5" class="items-table-container"
+                cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'items-table')" [style.transform]="getTransform('items-table')">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th [contentEditable]="isEditMode" [id]="'col-desc'" (blur)="updateContent('col-desc')"
+                                (click)="handleElementClick($event, 'col-desc')">
+                                {{templateContent['col-desc'] || 'Item'}}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-qty'" (blur)="updateContent('col-qty')"
+                                (click)="handleElementClick($event, 'col-qty')">
+                                {{templateContent['col-qty'] || 'Quantity'}}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-rate'" (blur)="updateContent('col-rate')"
+                                (click)="handleElementClick($event, 'col-rate')">
+                                {{templateContent['col-rate'] || 'Rate'}}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-tax'" (blur)="updateContent('col-tax')"
+                                (click)="handleElementClick($event, 'col-tax')">
+                                {{templateContent['col-tax'] || 'Tax'}}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-amount'" (blur)="updateContent('col-amount')"
+                                (click)="handleElementClick($event, 'col-amount')">
+                                {{templateContent['col-amount'] || 'Amount'}}
+                            </th>
+                            <th *ngIf="isEditMode" class="action-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of getItems().controls; let i = index">
+                            <td [contentEditable]="isEditMode" [id]="'item-desc-' + i"
+                                (blur)="updateItemContent($event, i, 'description')"
+                                (click)="handleElementClick($event, 'item-desc-' + i)">
+                                {{ item.get('description')?.value || 'Vacation Homes' }}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-qty-' + i"
+                                (blur)="updateItemContent($event, i, 'quantity'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'item-qty-' + i)">
+                                <span class="qty-value">{{ item.get('quantity')?.value || '01' }}</span>
+                                <span class="qty-unit" *ngIf="i === 0">night</span>
+                                <span class="qty-unit" *ngIf="i === 2">session</span>
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-rate-' + i"
+                                (blur)="updateItemContent($event, i, 'rate'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'item-rate-' + i)">
+                                <span class="rate-value">₹{{ item.get('rate')?.value || 0 }}</span>
+                                <span class="rate-unit" *ngIf="i === 0">per night</span>
+                                <span class="rate-unit" *ngIf="i === 2">per session</span>
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-tax-' + i"
+                                (blur)="updateItemContent($event, i, 'tax'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'item-tax-' + i)">
+                                0.00
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-amount-' + i"
+                                (blur)="updateItemContent($event, i, 'amount')"
+                                (click)="handleElementClick($event, 'item-amount-' + i)">
+                                ₹{{ (item.get('quantity')?.value || 1) * (item.get('rate')?.value || 0) }}
+                            </td>
+                            <td *ngIf="isEditMode" class="action-column">
+                                <button mat-icon-button color="warn" (click)="removeItem(i)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Invoice Summary Section - Always show in real estate template -->
+            <div class="invoice-summary" style="display: block !important;" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'invoice-summary')"
+                [style.transform]="getTransform('invoice-summary')">
+                <h3 [contentEditable]="isEditMode" [id]="'summary-title'" (blur)="updateContent('summary-title')"
+                    (click)="handleElementClick($event, 'summary-title')">
+                    {{templateContent['summary-title'] || 'Invoice Summary'}}
+                </h3>
+                <table class="summary-table">
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'agreement-value-label'"
+                            (blur)="updateContent('agreement-value-label')"
+                            (click)="handleElementClick($event, 'agreement-value-label')">
+                            {{templateContent['agreement-value-label'] || 'Agreement Value'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'agreement-value-amount'"
+                            (blur)="updateContent('agreement-value-amount')"
+                            (click)="handleElementClick($event, 'agreement-value-amount')">
+                            {{templateContent['agreement-value-amount'] || '1,111,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'parking-charges-label'"
+                            (blur)="updateContent('parking-charges-label')"
+                            (click)="handleElementClick($event, 'parking-charges-label')">
+                            {{templateContent['parking-charges-label'] || 'Car Parking Charges'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'parking-charges-amount'"
+                            (blur)="updateContent('parking-charges-amount')"
+                            (click)="handleElementClick($event, 'parking-charges-amount')">
+                            {{templateContent['parking-charges-amount'] || '50,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'addon-charges-label'"
+                            (blur)="updateContent('addon-charges-label')"
+                            (click)="handleElementClick($event, 'addon-charges-label')">
+                            {{templateContent['addon-charges-label'] || 'Add-on Charges'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'addon-charges-amount'"
+                            (blur)="updateContent('addon-charges-amount')"
+                            (click)="handleElementClick($event, 'addon-charges-amount')">
+                            {{templateContent['addon-charges-amount'] || '20,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'subtotal-label'"
+                            (blur)="updateContent('subtotal-label')"
+                            (click)="handleElementClick($event, 'subtotal-label')">
+                            {{templateContent['subtotal-label'] || 'Subtotal'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'subtotal-amount'"
+                            (blur)="updateContent('subtotal-amount')"
+                            (click)="handleElementClick($event, 'subtotal-amount')">
+                            {{templateContent['subtotal-amount'] || '1,181,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'discount-label'"
+                            (blur)="updateContent('discount-label')"
+                            (click)="handleElementClick($event, 'discount-label')">
+                            {{templateContent['discount-label'] || 'Discount (Cashback)'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'discount-amount'"
+                            (blur)="updateContent('discount-amount')"
+                            (click)="handleElementClick($event, 'discount-amount')">
+                            {{templateContent['discount-amount'] || '-11,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'net-payable-label'"
+                            (blur)="updateContent('net-payable-label')"
+                            (click)="handleElementClick($event, 'net-payable-label')">
+                            {{templateContent['net-payable-label'] || 'Net Payable'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'net-payable-amount'"
+                            (blur)="updateContent('net-payable-amount')"
+                            (click)="handleElementClick($event, 'net-payable-amount')">
+                            {{templateContent['net-payable-amount'] || '1,170,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'token-paid-label'"
+                            (blur)="updateContent('token-paid-label')"
+                            (click)="handleElementClick($event, 'token-paid-label')">
+                            {{templateContent['token-paid-label'] || 'Token Amount Paid'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'token-paid-amount'"
+                            (blur)="updateContent('token-paid-amount')"
+                            (click)="handleElementClick($event, 'token-paid-amount')">
+                            {{templateContent['token-paid-amount'] || '200,000 ₹'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td [contentEditable]="isEditMode" [id]="'balance-amount-label'"
+                            (blur)="updateContent('balance-amount-label')"
+                            (click)="handleElementClick($event, 'balance-amount-label')">
+                            {{templateContent['balance-amount-label'] || 'Balance Amount'}}
+                        </td>
+                        <td [contentEditable]="isEditMode" [id]="'balance-amount-amount'"
+                            (blur)="updateContent('balance-amount-amount')"
+                            (click)="handleElementClick($event, 'balance-amount-amount')">
+                            {{templateContent['balance-amount-amount'] || '970,000 ₹'}}
+                        </td>
+                    </tr>
+                </table>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'terms-section')" [style.transform]="getTransform('terms-section')">
+                <p [contentEditable]="isEditMode" [id]="'terms-title'" (blur)="updateContent('terms-title')"
+                    (click)="handleElementClick($event, 'terms-title')">
+                    {{templateContent['terms-title'] || 'Terms & Conditions:'}}
+                </p>
                 <div class="edit-overlay" *ngIf="isEditMode">
                     <mat-icon>drag_indicator</mat-icon>
                 </div>
             </div>
         </div>
 
-        <!-- Section Title for Creative Layout -->
-        <div *ngIf="layout === 'creative'" class="section-title" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'section-title')">
-            <h3 [contentEditable]="isEditMode" [id]="'section-title'" (blur)="updateContent('section-title')"
-                (click)="handleElementClick($event, 'section-title')">
-                THE AWESOME WORK WE DID FOR YOU
-            </h3>
-            <div class="edit-overlay" *ngIf="isEditMode">
-                <mat-icon>drag_indicator</mat-icon>
-            </div>
-        </div>
-
-        <!-- Invoice Items Table -->
-        <div class="invoice-items" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
-            (cdkDragEnded)="onDragEnded($event, 'invoice-items')">
-            <table [ngClass]="{'modern-table': layout === 'modern', 'creative-table': layout === 'creative'}">
-                <thead>
-                    <tr>
-                        <th [contentEditable]="isEditMode" [id]="'col-desc'" (blur)="updateContent('col-desc')"
-                            (click)="handleElementClick($event, 'col-desc')">
-                            {{ layout === 'creative' ? 'CREATIVE SERVICE' : (layout === 'modern' ? 'SERVICE' :
-                            'Description') }}
-                        </th>
-                        <th [contentEditable]="isEditMode" [id]="'col-qty'" (blur)="updateContent('col-qty')"
-                            (click)="handleElementClick($event, 'col-qty')">
-                            {{ layout === 'creative' ? 'MAGIC DELIVERED' : (layout === 'modern' ? 'HOURS/QTY' :
-                            'Quantity') }}
-                        </th>
-                        <th [contentEditable]="isEditMode" [id]="'col-rate'" (blur)="updateContent('col-rate')"
-                            (click)="handleElementClick($event, 'col-rate')">
-                            {{ layout === 'creative' ? 'VALUE PER UNIT' : (layout === 'modern' ? 'RATE' : 'Rate') }}
-                        </th>
-                        <th [contentEditable]="isEditMode" [id]="'col-amount'" (blur)="updateContent('col-amount')"
-                            (click)="handleElementClick($event, 'col-amount')">
-                            {{ layout === 'creative' ? 'TOTAL MAGIC' : 'Amount' }}
-                        </th>
-                        <th *ngIf="isEditMode" class="action-column">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let item of getItems().controls; let i = index">
-                        <td [contentEditable]="isEditMode" [id]="'item-desc-' + i"
-                            (blur)="updateItemContent($event, i, 'description')"
-                            (click)="handleElementClick($event, 'item-desc-' + i)">
-                            {{ item.get('description')?.value || 'Service Description' }}
-                        </td>
-                        <td [contentEditable]="isEditMode" [id]="'item-qty-' + i"
-                            (blur)="updateItemContent($event, i, 'quantity')"
-                            (click)="handleElementClick($event, 'item-qty-' + i)">
-                            {{ item.get('quantity')?.value || 1 }}
-                        </td>
-                        <td [contentEditable]="isEditMode" [id]="'item-rate-' + i"
-                            (blur)="updateItemContent($event, i, 'rate')"
-                            (click)="handleElementClick($event, 'item-rate-' + i)">
-                            {{ item.get('rate')?.value || 0 | currency }}
-                        </td>
-                        <td [contentEditable]="isEditMode" [id]="'item-amount-' + i"
-                            (blur)="updateItemContent($event, i, 'amount')"
-                            (click)="handleElementClick($event, 'item-amount-' + i)">
-                            {{ (item.get('quantity')?.value || 1) * (item.get('rate')?.value || 0) | currency }}
-                        </td>
-                        <td *ngIf="isEditMode" class="action-column">
-                            <button mat-icon-button color="warn" (click)="removeItem(i)">
-                                <mat-icon>delete</mat-icon>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="total-label" [contentEditable]="isEditMode" [id]="'total-label'"
-                            (blur)="updateContent('total-label')" (click)="handleElementClick($event, 'total-label')">
-                            {{ layout === 'creative' ? 'THE GRAND TOTAL' : (layout === 'modern' ? 'TOTAL DUE' : 'Total')
-                            }}
-                        </td>
-                        <td class="total-amount" [contentEditable]="isEditMode" [id]="'total-amount'"
-                            (blur)="updateContent('total-amount')" (click)="handleElementClick($event, 'total-amount')">
-                            {{ calculateTotal() | currency }}
-                        </td>
-                        <td *ngIf="isEditMode"></td>
-                    </tr>
-                </tfoot>
-            </table>
-            <div class="edit-overlay" *ngIf="isEditMode">
-                <mat-icon>drag_indicator</mat-icon>
-            </div>
-        </div>
-
-        <!-- Custom Sections Area - will contain payment info, notes, etc. -->
-        <div *ngFor="let section of customSections; let i = index" class="custom-section"
-            [style.background-color]="section.color" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || layout !== 'creative'" (cdkDragEnded)="onDragEnded($event, section.id)">
-
-            <h3 [id]="'section-title-' + i" [contentEditable]="isEditMode" (blur)="updateSectionContent(i, 'title')">
-                {{section.title}}
-            </h3>
-
-            <div [id]="'section-content-' + i" [contentEditable]="isEditMode"
-                (blur)="updateSectionContent(i, 'content')" class="section-content"
-                [innerHTML]="section.content | lineBreakTransform">
+        <!-- Original Template - Shown when layout is NOT real-estate -->
+        <ng-container *ngIf="templateId !== 4 && templateId !== 5">
+            <!-- Header Section -->
+            <div class="invoice-header" [ngStyle]="getHeaderStyle()" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'invoice-header')"
+                [style.transform]="getTransform('invoice-header')">
+                <h1 [contentEditable]="isEditMode" [id]="'header-title'" (blur)="updateContent('header-title')"
+                    (click)="handleElementClick($event, 'header-title')">INVOICE</h1>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
             </div>
 
-            <div class="section-controls" *ngIf="isEditMode">
-                <button mat-icon-button color="warn" (click)="removeCustomSection(section)">
-                    <mat-icon>delete</mat-icon>
-                </button>
-                <input type="color" [(ngModel)]="section.color" (change)="updateSectionColor(i)">
-            </div>
-        </div>
+            <!-- Invoice Info Section -->
+            <div class="invoice-info"
+                [ngClass]="{'modern-info': layout === 'modern', 'creative-info': layout === 'creative'}">
+                <!-- Company Info -->
+                <div class="invoice-companyInfo"
+                    [style.display]="elementSettings?.companyInfo?.visible !== false ? '' : 'none'"
+                    [ngClass]="{'force-hide': elementSettings?.companyInfo?.visible === false}"
+                    data-element="companyInfo" cdkDragBoundary=".invoice-template" cdkDrag
+                    [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'company-info')"
+                    [style.transform]="getTransform('company-info')">
+                    <h2 [contentEditable]="isEditMode" [id]="'business-name'" (blur)="updateContent('business-name')"
+                        (click)="handleElementClick($event, 'business-name')">{{invoiceForm.get('business')?.value ||
+                        'Your
+                        Business Name'}}</h2>
+                    <p [contentEditable]="isEditMode" [id]="'email'" (blur)="updateContent('email')"
+                        (click)="handleElementClick($event, 'email')">{{invoiceForm.get('email')?.value ||
+                        'your.email@example.com'}}</p>
+                    <p [contentEditable]="isEditMode" [id]="'phone'" (blur)="updateContent('phone')"
+                        (click)="handleElementClick($event, 'phone')">{{invoiceForm.get('phone')?.value ||
+                        '123-456-7890'}}
+                    </p>
+                    <p [contentEditable]="isEditMode" [id]="'address'" (blur)="updateContent('address')"
+                        (click)="handleElementClick($event, 'address')">{{invoiceForm.get('address')?.value || '123
+                        Business
+                        St, City, State'}}</p>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
 
-        <!-- Footer Section -->
-        <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag
-            [cdkDragDisabled]="!isEditMode || layout !== 'creative'"
-            (cdkDragEnded)="onDragEnded($event, 'invoice-footer')">
-            <p [contentEditable]="isEditMode" [id]="'footer-text'" (blur)="updateContent('footer-text')"
-                (click)="handleElementClick($event, 'footer-text')"
-                [innerHTML]="templateContent['footer-text'] ? (templateContent['footer-text'] | lineBreakTransform) : 'Thank you for your business!'">
-            </p>
-            <div class="edit-overlay" *ngIf="isEditMode">
-                <mat-icon>drag_indicator</mat-icon>
+                <!-- Client Info -->
+                <div class="invoice-clientInfo"
+                    [style.display]="elementSettings?.clientInfo?.visible !== false ? '' : 'none'"
+                    [ngClass]="{'force-hide': elementSettings?.clientInfo?.visible === false}" data-element="clientInfo"
+                    cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                    (cdkDragEnded)="onDragEnded($event, 'client-info')" [style.transform]="getTransform('client-info')">
+                    <h3 [contentEditable]="isEditMode" [id]="'property-title'" (blur)="updateContent('property-title')"
+                        (click)="handleElementClick($event, 'property-title')">TO: Client Name</h3>
+                    <p [contentEditable]="isEditMode" [id]="'client-name'" (blur)="updateContent('client-name')"
+                        (click)="handleElementClick($event, 'client-name')">{{invoiceForm.get('name')?.value || 'Client
+                        Name'}}</p>
+                    <p [contentEditable]="isEditMode" [id]="'client-email'" (blur)="updateContent('client-email')"
+                        (click)="handleElementClick($event, 'client-email')">{{invoiceForm.get('email')?.value ||
+                        'client@example.com'}}</p>
+                    <p [contentEditable]="isEditMode" [id]="'client-address'" (blur)="updateContent('client-address')"
+                        (click)="handleElementClick($event, 'client-address')">{{invoiceForm.get('address')?.value ||
+                        'Client Address'}}</p>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+
+                <!-- Property Information -->
+                <div class="invoice-propertyInfo"
+                    [style.display]="elementSettings?.propertyInfo?.visible !== false ? '' : 'none'"
+                    [ngClass]="{'force-hide': elementSettings?.propertyInfo?.visible === false}"
+                    data-element="propertyInfo" cdkDragBoundary=".invoice-template" cdkDrag
+                    [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'property-info')"
+                    [style.transform]="getTransform('property-info')">
+                    <h3 [contentEditable]="isEditMode" [id]="'property-heading'"
+                        (blur)="updateContent('property-heading')"
+                        (click)="handleElementClick($event, 'property-heading')">Property Details</h3>
+                    <p [contentEditable]="isEditMode" [id]="'property-name'" (blur)="updateContent('property-name')"
+                        (click)="handleElementClick($event, 'property-name')">{{invoiceForm.get('propertyName')?.value
+                        ||
+                        'Property Name'}}</p>
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Section Title for Creative Layout -->
+            <div *ngIf="layout === 'creative'" class="section-title" cdkDragBoundary=".invoice-template" cdkDrag
+                [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'section-title')"
+                [style.transform]="getTransform('section-title')">
+                <h3 [contentEditable]="isEditMode" [id]="'section-title'" (blur)="updateContent('section-title')"
+                    (click)="handleElementClick($event, 'section-title')">
+                    THE AWESOME WORK WE DID FOR YOU
+                </h3>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Invoice Items Table -->
+            <div *ngIf="templateId !== 4 && templateId !== 5" class="invoice-items" cdkDragBoundary=".invoice-template"
+                cdkDrag [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, 'invoice-items')"
+                [style.transform]="getTransform('invoice-items')">
+                <table [ngClass]="{'modern-table': layout === 'modern', 'creative-table': layout === 'creative'}">
+                    <thead>
+                        <tr>
+                            <th [contentEditable]="isEditMode" [id]="'col-desc'" (blur)="updateContent('col-desc')"
+                                (click)="handleElementClick($event, 'col-desc')">
+                                {{ layout === 'creative' ? 'CREATIVE SERVICE' : (layout === 'modern' ? 'SERVICE' :
+                                'Description') }}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-qty'" (blur)="updateContent('col-qty')"
+                                (click)="handleElementClick($event, 'col-qty')">
+                                {{ layout === 'creative' ? 'MAGIC DELIVERED' : (layout === 'modern' ? 'HOURS/QTY' :
+                                'Quantity') }}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-rate'" (blur)="updateContent('col-rate')"
+                                (click)="handleElementClick($event, 'col-rate')">
+                                {{ layout === 'creative' ? 'VALUE PER UNIT' : (layout === 'modern' ? 'RATE' : 'Rate') }}
+                            </th>
+                            <th [contentEditable]="isEditMode" [id]="'col-amount'" (blur)="updateContent('col-amount')"
+                                (click)="handleElementClick($event, 'col-amount')">
+                                {{ layout === 'creative' ? 'TOTAL MAGIC' : 'Amount' }}
+                            </th>
+                            <th *ngIf="isEditMode" class="action-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of getItems().controls; let i = index">
+                            <td [contentEditable]="isEditMode" [id]="'item-desc-' + i"
+                                (blur)="updateItemContent($event, i, 'description')"
+                                (click)="handleElementClick($event, 'item-desc-' + i)">
+                                {{ item.get('description')?.value || 'Service Description' }}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-qty-' + i"
+                                (blur)="updateItemContent($event, i, 'quantity'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'item-qty-' + i)">
+                                {{ item.get('quantity')?.value || 1 }}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-rate-' + i"
+                                (blur)="updateItemContent($event, i, 'rate'); onItemValueChange()"
+                                (click)="handleElementClick($event, 'item-rate-' + i)">
+                                {{ item.get('rate')?.value || 0 | currency:'INR':'symbol':'1.2-2' }}
+                            </td>
+                            <td [contentEditable]="isEditMode" [id]="'item-amount-' + i"
+                                (blur)="updateItemContent($event, i, 'amount')"
+                                (click)="handleElementClick($event, 'item-amount-' + i)">
+                                ₹{{ (item.get('quantity')?.value || 1) * (item.get('rate')?.value || 0) |
+                                currency:'INR':'symbol':'1.2-2' }}
+                            </td>
+                            <td *ngIf="isEditMode" class="action-column">
+                                <button mat-icon-button color="warn" (click)="removeItem(i)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="total-label" [contentEditable]="isEditMode" [id]="'total-label'"
+                                (blur)="updateContent('total-label')"
+                                (click)="handleElementClick($event, 'total-label')">
+                                {{ layout === 'creative' ? 'THE GRAND TOTAL' : (layout === 'modern' ? 'TOTAL DUE' :
+                                'Total')
+                                }}
+                            </td>
+                            <td class="total-amount" [contentEditable]="isEditMode" [id]="'total-amount'"
+                                (blur)="updateContent('total-amount')"
+                                (click)="handleElementClick($event, 'total-amount')">
+                                {{ calculateTotal() | currency:'INR':'symbol':'1.2-2' }}
+                            </td>
+                            <td *ngIf="isEditMode"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+
+            <!-- Custom Sections Area - will contain payment info, notes, etc. -->
+            <div cdkDropList (cdkDropListDropped)="onDrop($event)" [cdkDropListDisabled]="!isEditMode">
+                <div *ngFor="let section of customSections; let i = index" class="custom-section" cdkDrag
+                    [style.background-color]="section.color" cdkDragBoundary=".invoice-template"
+                    [cdkDragDisabled]="!isEditMode" (cdkDragEnded)="onDragEnded($event, section.id)"
+                    [style.transform]="getTransform(section.id)">
+
+                    <h3 [id]="'section-title-' + i" [contentEditable]="isEditMode"
+                        (blur)="updateSectionContent(i, 'title')">
+                        {{section.title}}
+                    </h3>
+
+                    <div [id]="'section-content-' + i" [contentEditable]="isEditMode"
+                        (blur)="updateSectionContent(i, 'content')" class="section-content"
+                        [innerHTML]="section.content | lineBreakTransform">
+                    </div>
+
+                    <div class="section-controls" *ngIf="isEditMode">
+                        <button mat-icon-button color="warn" (click)="removeCustomSection(section)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                        <input type="color" [(ngModel)]="section.color" (change)="updateSectionColor(i)">
+                    </div>
+
+                    <div class="edit-overlay" *ngIf="isEditMode">
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Section -->
+            <div class="invoice-footer" cdkDragBoundary=".invoice-template" cdkDrag [cdkDragDisabled]="!isEditMode"
+                (cdkDragEnded)="onDragEnded($event, 'invoice-footer')"
+                [style.transform]="getTransform('invoice-footer')">
+                <p [contentEditable]="isEditMode" [id]="'footer-text'" (blur)="updateContent('footer-text')"
+                    (click)="handleElementClick($event, 'footer-text')"
+                    [innerHTML]="templateContent['footer-text'] ? (templateContent['footer-text'] | lineBreakTransform) : 'Thank you for your business!'">
+                </p>
+                <div class="edit-overlay" *ngIf="isEditMode">
+                    <mat-icon>drag_indicator</mat-icon>
+                </div>
+            </div>
+        </ng-container>
     </div>
 
+    <!-- Voice Commands Help -->
+    <div class="voice-commands-help" *ngIf="showVoiceHelp">
+        <button class="close-button" (click)="showVoiceHelp = false">×</button>
+        <h4>Available Voice Commands</h4>
+        <ul>
+            <li>"Add item" - Adds a new invoice item</li>
+            <li>"Delete item" - Removes the last item</li>
+            <li>"Save invoice" - Saves current invoice</li>
+            <li>"Download PDF" - Downloads as PDF</li>
+            <li>"Customise template" - Toggles edit mode</li>
+            <li>"Go to home" - Returns to home page</li>
+            <li>"Show preview" - Scrolls to invoice preview</li>
+            <li>"Set company name [name]" - Sets company name</li>
+            <li>"Set client name [name]" - Sets client name</li>
+            <li>"Set item description [text]" - Sets description for last item</li>
+            <li>"Set quantity [number]" - Sets quantity for last item</li>
+            <li>"Set rate [number]" - Sets rate for last item</li>
+            <li>"Show help" - Shows this help panel</li>
+            <li>"Stop listening" - Stops voice recognition</li>
+        </ul>
+    </div>
 </div>

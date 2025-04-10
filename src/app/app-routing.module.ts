@@ -5,6 +5,7 @@ import { InvoiceCreatorComponent } from './components/invoice-creator/invoice-cr
 import { InvoiceFormComponent } from './components/invoice-form/invoice-form.component';
 import { InvoiceTemplatesComponent } from './components/invoice-templates/invoice-templates.component';
 import { LoginComponent } from './components/login/login.component';
+import { TemplateCreatorComponent } from './components/template-creator/template-creator.component';
 import { AuthGuard } from './guards/auth.guard';
 import { NonAuthGuard } from './guards/non-auth.guard';
 
@@ -36,6 +37,16 @@ const routes: Routes = [
   {
     path: 'create',
     component: InvoiceCreatorComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'template/create',
+    component: TemplateCreatorComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'template/edit/:id',
+    component: TemplateCreatorComponent,
     canActivate: [AuthGuard]
   },
 

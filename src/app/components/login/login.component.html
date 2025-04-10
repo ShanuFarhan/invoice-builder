@@ -1,60 +1,65 @@
-<div class="login-container">
-    <mat-card class="login-card">
-        <mat-card-header>
-            <mat-card-title>{{ isSignUp ? 'Create Account' : 'Invoice Builder Login' }}</mat-card-title>
-        </mat-card-header>
+<div class="login-page-container">
+    <div class="login-background"></div>
 
-        <mat-card-content>
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-                <mat-form-field appearance="outline">
-                    <mat-label>Email</mat-label>
-                    <input matInput type="email" formControlName="email" placeholder="Enter your email">
-                    <mat-icon matSuffix>email</mat-icon>
-                    <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-                        Email is required
-                    </mat-error>
-                    <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-                        Please enter a valid email address
-                    </mat-error>
-                </mat-form-field>
+    <div class="login-content">
+        <div class="brand-container">
+            <h1 class="brand-name">Invoice Builder</h1>
+            <p class="brand-tagline">Create, manage, and send professional invoices with ease</p>
+        </div>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Password</mat-label>
-                    <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
-                        placeholder="Enter your password">
-                    <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-                        <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-                    </button>
-                    <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-                        Password is required
-                    </mat-error>
-                    <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
-                        Password must be at least 6 characters
-                    </mat-error>
-                </mat-form-field>
+        <div class="login-card">
+            <div class="login-header">
+                <h2>{{ isSignUp ? 'Create Account' : 'Sign In' }}</h2>
+            </div>
 
-                <div class="error-message" *ngIf="errorMessage">
-                    {{ errorMessage }}
-                </div>
+            <div class="login-form">
+                <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                    <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Email</mat-label>
+                        <input matInput formControlName="email" placeholder="Enter your email" required>
+                        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required</mat-error>
+                        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Please enter a valid email
+                            address</mat-error>
+                    </mat-form-field>
 
-                <div class="button-container">
-                    <button mat-raised-button color="primary" type="submit" [disabled]="loading || !loginForm.valid">
-                        <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
-                        <span *ngIf="!loading">{{ isSignUp ? 'Create Account' : 'Sign In' }}</span>
+                    <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Password</mat-label>
+                        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+                            placeholder="Enter your password" required>
+                        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is
+                            required</mat-error>
+                        <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">Password must be at least 6
+                            characters</mat-error>
+                    </mat-form-field>
+
+                    <button mat-raised-button color="primary" class="login-button" type="submit"
+                        [disabled]="loginForm.invalid">
+                        {{ isSignUp ? 'Sign Up' : 'Sign In' }}
                     </button>
 
-                    <button mat-stroked-button type="button" (click)="googleSignIn()" [disabled]="loading">
-                        <img src="https://img.icons8.com/win10/512/google-logo.png" alt="Google" class="google-icon">
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+
+                    <button type="button" class="google-button" (click)="googleSignIn()">
+                        <img src="assets/images/google-icon.svg" alt="Google">
                         Sign in with Google
                     </button>
-                </div>
-            </form>
 
-            <div class="toggle-signup">
-                <button mat-button color="accent" (click)="toggleSignUp()">
-                    {{ isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up' }}
-                </button>
+                    <div class="error-message" *ngIf="errorMessage">
+                        {{ errorMessage }}
+                    </div>
+                </form>
+
+                <div class="toggle-signup">
+                    <button mat-button color="primary" (click)="toggleSignUp()">
+                        {{ isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up' }}
+                    </button>
+                </div>
             </div>
-        </mat-card-content>
-    </mat-card>
+        </div>
+    </div>
 </div>
